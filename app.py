@@ -33,9 +33,12 @@ st.markdown("""
         background: transparent;
     }
     
-    h1 {
+    h1, h2, h3, h4, h5, h6 {
         color: #1a1a1a !important;
         font-weight: 700;
+    }
+    
+    h1 {
         background: rgba(255, 255, 255, 0.95);
         padding: 1rem 1.5rem;
         border-radius: 12px;
@@ -44,9 +47,12 @@ st.markdown("""
     }
     
     h2, h3 {
-        color: white !important;
-        font-weight: 700;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        background: rgba(255, 255, 255, 0.9);
+        padding: 0.75rem 1.25rem;
+        border-radius: 10px;
+        display: inline-block;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
     }
 
     
