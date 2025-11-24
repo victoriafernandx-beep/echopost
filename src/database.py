@@ -26,3 +26,13 @@ def get_posts(user_id):
     except Exception as e:
         st.error(f"Error fetching posts: {e}")
         return []
+
+def delete_post(post_id):
+    supabase = init_supabase()
+    try:
+        response = supabase.table("posts").delete().eq("id", post_id).execute()
+        return response
+    except Exception as e:
+        st.error(f"Error deleting post: {e}")
+        return None
+

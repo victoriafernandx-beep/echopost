@@ -7,3 +7,4 @@ def configure_genai():
 
 def generate_post(topic, tone="Professional"):
     return f"Generated post about {topic} with {tone} tone."
+
