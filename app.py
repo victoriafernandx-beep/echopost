@@ -129,6 +129,57 @@ st.markdown("### Sua plataforma de criação de conteúdo para LinkedIn com IA")
 st.sidebar.title("🧭 Navegação")
 page = st.sidebar.radio("Ir para", ["🏠 Home", "✨ Gerador de Posts", "📡 News Radar", "⚙️ Configurações"])
 
+# Dark mode toggle
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🎨 Tema")
+if 'dark_mode' not in st.session_state:
+    st.session_state['dark_mode'] = False
+
+dark_mode = st.sidebar.toggle("🌙 Modo Escuro", value=st.session_state['dark_mode'])
+if dark_mode != st.session_state['dark_mode']:
+    st.session_state['dark_mode'] = dark_mode
+    st.rerun()
+
+# Apply dark mode CSS if enabled
+if st.session_state['dark_mode']:
+    st.markdown("""
+    <style>
+        .main {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #ffffff !important;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .post-card {
+            background: rgba(30, 30, 30, 0.95) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+        .post-topic {
+            color: #8b9aff !important;
+        }
+        .post-content {
+            background: #2a2a2a !important;
+            color: #e0e0e0 !important;
+        }
+        .post-meta {
+            color: #aaa !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+# Keyboard shortcuts hint
+st.sidebar.markdown("---")
+st.sidebar.markdown("### ⌨️ Atalhos")
+st.sidebar.markdown("""
+<small>
+• Ctrl+S: Salvar post<br>
+• Ctrl+Enter: Gerar post<br>
+• Esc: Limpar editor
+</small>
+""", unsafe_allow_html=True)
+
+
 if page == "🏠 Home":
     from src import analytics
     import plotly.graph_objects as go
@@ -288,6 +339,8 @@ if page == "🏠 Home":
 
 
 elif page == "✨ Gerador de Posts":
+    from src import ai_helpers
+    
     st.markdown("## ✨ Gerador de Conteúdo")
     
     col1, col2 = st.columns([2, 1])
@@ -305,26 +358,99 @@ elif page == "✨ Gerador de Posts":
                 st.session_state['last_post'] = content
                 st.session_state['last_topic'] = topic
                 st.success("✅ Post gerado com sucesso!")
+                st.balloons()
         else:
             st.warning("⚠️ Por favor, insira um tópico.")
     
     if 'last_post' in st.session_state:
         st.markdown("---")
-        st.markdown("### 📄 Conteúdo Gerado")
         
-        content = st.text_area(
-            "Edite o conteúdo se desejar:",
-            st.session_state['last_post'],
-            height=200,
-            key="generated_content"
-        )
+        # Two columns: Editor and Preview
+        col_editor, col_preview = st.columns([1, 1])
         
-        # Character counter
-        char_count = len(content)
-        linkedin_limit = 3000
-        counter_class = "warning" if char_count > linkedin_limit else ""
-        st.markdown(f'<div class="char-counter {counter_class}">{char_count} / {linkedin_limit} caracteres</div>', unsafe_allow_html=True)
+        with col_editor:
+            st.markdown("### ✏️ Editor")
+            
+            content = st.text_area(
+                "Edite o conteúdo:",
+                st.session_state['last_post'],
+                height=300,
+                key="generated_content"
+            )
+            
+            # Stats row
+            word_count = ai_helpers.count_words(content)
+            sentence_count = ai_helpers.count_sentences(content)
+            char_count = len(content)
+            readability = ai_helpers.analyze_readability(content)
+            
+            col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
+            with col_stat1:
+                st.metric("Palavras", word_count)
+            with col_stat2:
+                st.metric("Frases", sentence_count)
+            with col_stat3:
+                linkedin_limit = 3000
+                st.metric("Caracteres", f"{char_count}/{linkedin_limit}")
+            with col_stat4:
+                st.metric("Leitura", readability)
+            
+            # Hashtag suggestions
+            st.markdown("#### 🏷️ Sugestões de Hashtags")
+            suggested_tags = ai_helpers.suggest_hashtags(content, st.session_state['last_topic'])
+            
+            cols = st.columns(3)
+            for idx, tag in enumerate(suggested_tags):
+                with cols[idx % 3]:
+                    if st.button(tag, key=f"tag_{idx}", use_container_width=True):
+                        if tag not in content:
+                            st.session_state['last_post'] = content + " " + tag
+                            st.rerun()
         
+        with col_preview:
+            st.markdown("### 👁️ Preview LinkedIn")
+            
+            # LinkedIn-style preview card
+            st.markdown(f"""
+            <div style="
+                background: white;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                padding: 1.5rem;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            ">
+                <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                    <div style="
+                        width: 48px;
+                        height: 48px;
+                        border-radius: 50%;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-weight: bold;
+                        font-size: 1.2rem;
+                        margin-right: 0.75rem;
+                    ">U</div>
+                    <div>
+                        <div style="font-weight: 600; color: #000;">Seu Nome</div>
+                        <div style="font-size: 0.85rem; color: #666;">Seu cargo • LinkedIn</div>
+                        <div style="font-size: 0.75rem; color: #666;">Agora</div>
+                    </div>
+                </div>
+                <div style="
+                    color: #000;
+                    line-height: 1.6;
+                    white-space: pre-wrap;
+                    word-wrap: break-word;
+                ">{content}</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        st.markdown("---")
+        
+        # Action buttons
         col1, col2, col3 = st.columns(3)
         with col1:
             if st.button("💾 Salvar no Banco de Dados", use_container_width=True):
@@ -353,6 +479,7 @@ elif page == "✨ Gerador de Posts":
             if st.button("📋 Copiar para Clipboard", use_container_width=True):
                 st.code(content, language=None)
                 st.info("👆 Copie o texto acima!")
+
 
 elif page == "📡 News Radar":
     st.markdown("## 📡 News Radar")
