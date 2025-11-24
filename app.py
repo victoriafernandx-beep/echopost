@@ -22,6 +22,22 @@ st.markdown("""
     .main {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 2rem;
+        animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
     }
     
     .stApp {
@@ -37,6 +53,7 @@ st.markdown("""
         color: #1a1a1a !important;
         font-weight: 700;
         text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
+        animation: slideUp 0.6s ease-out;
     }
 
     
@@ -49,6 +66,7 @@ st.markdown("""
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.18);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
+        animation: slideUp 0.4s ease-out;
     }
     
     .post-card:hover {
@@ -93,15 +111,21 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
     
+    .stButton>button:active {
+        transform: translateY(0);
+    }
+    
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
         border-radius: 8px;
         border: 2px solid rgba(255, 255, 255, 0.3);
         background: rgba(255, 255, 255, 0.9);
+        transition: all 0.3s ease;
     }
     
     .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
         border-color: #667eea;
         box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        transform: scale(1.01);
     }
     
     .sidebar .sidebar-content {
@@ -119,9 +143,28 @@ st.markdown("""
     .char-counter.warning {
         color: #ff6b6b;
         font-weight: 600;
+        animation: pulse 2s infinite;
+    }
+    
+    /* Template card styling */
+    .template-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border: 2px solid #e0e0e0;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .template-card:hover {
+        border-color: #667eea;
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
     }
 </style>
 """, unsafe_allow_html=True)
+
 
 st.title("📢 EchoPost")
 st.markdown("### Sua plataforma de criação de conteúdo para LinkedIn com IA")
@@ -349,11 +392,60 @@ if page == "🏠 Home":
 
 
 elif page == "✨ Gerador de Posts":
-    from src import ai_helpers
+    from src import ai_helpers, templates, resources
     
     st.markdown("## ✨ Gerador de Conteúdo")
     
+    # Templates Library
+    with st.expander("📚 Biblioteca de Templates", expanded=False):
+        st.markdown("**Escolha um template para começar:**")
+        template_category = st.selectbox("Categoria", templates.get_categories(), key="template_cat")
+        
+        category_templates = templates.get_templates(template_category)
+        cols = st.columns(2)
+        for idx, template in enumerate(category_templates):
+            with cols[idx % 2]:
+                if st.button(f"📄 {template['title']}", key=f"tmpl_{idx}", use_container_width=True):
+                    st.session_state['last_post'] = template['content']
+                    st.session_state['last_topic'] = template['title']
+                    st.success(f"✅ Template '{template['title']}' carregado!")
+                    st.rerun()
+    
+    # Resources Library
+    with st.expander("🎨 Biblioteca de Recursos", expanded=False):
+        tab1, tab2, tab3 = st.tabs(["😊 Emojis", "📣 CTAs", "💡 Frases de Impacto"])
+        
+        with tab1:
+            emoji_cat = st.selectbox("Categoria de Emoji", resources.get_emoji_categories())
+            emojis = resources.get_emojis(emoji_cat)
+            cols = st.columns(8)
+            for idx, emoji in enumerate(emojis):
+                with cols[idx % 8]:
+                    if st.button(emoji, key=f"emoji_{idx}"):
+                        if 'last_post' in st.session_state:
+                            st.session_state['last_post'] += emoji
+                            st.rerun()
+        
+        with tab2:
+            st.markdown("**Clique para adicionar ao post:**")
+            ctas = resources.get_ctas()
+            for idx, cta in enumerate(ctas[:5]):  # Show first 5
+                if st.button(f"➕ {cta}", key=f"cta_{idx}", use_container_width=True):
+                    if 'last_post' in st.session_state:
+                        st.session_state['last_post'] += f"\n\n{cta}"
+                        st.rerun()
+        
+        with tab3:
+            st.markdown("**Frases poderosas para começar:**")
+            phrases = resources.get_power_phrases()
+            for idx, phrase in enumerate(phrases[:5]):  # Show first 5
+                if st.button(f"✨ {phrase}", key=f"phrase_{idx}", use_container_width=True):
+                    if 'last_post' in st.session_state:
+                        st.session_state['last_post'] = f"{phrase}\n\n{st.session_state.get('last_post', '')}"
+                        st.rerun()
+    
     col1, col2 = st.columns([2, 1])
+
     
     with col1:
         topic = st.text_input("💡 Sobre o que você quer escrever?", placeholder="Ex: Inteligência Artificial no mercado de trabalho")
