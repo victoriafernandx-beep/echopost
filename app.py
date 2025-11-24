@@ -131,11 +131,21 @@ page = st.sidebar.radio("Ir para", ["🏠 Home", "✨ Gerador de Posts", "📡 N
 
 # Dark mode toggle
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 🎨 Tema")
 if 'dark_mode' not in st.session_state:
     st.session_state['dark_mode'] = False
 
-dark_mode = st.sidebar.toggle("🌙 Modo Escuro", value=st.session_state['dark_mode'])
+# Better dark mode toggle
+col_icon, col_toggle = st.sidebar.columns([1, 3])
+with col_icon:
+    if st.session_state['dark_mode']:
+        st.markdown("### 🌙")
+    else:
+        st.markdown("### ☀️")
+with col_toggle:
+    dark_mode = st.toggle("Modo Escuro" if not st.session_state['dark_mode'] else "Modo Claro", 
+                          value=st.session_state['dark_mode'], 
+                          key="theme_toggle")
+    
 if dark_mode != st.session_state['dark_mode']:
     st.session_state['dark_mode'] = dark_mode
     st.rerun()
@@ -408,45 +418,134 @@ elif page == "✨ Gerador de Posts":
                             st.rerun()
         
         with col_preview:
-            st.markdown("### 👁️ Preview LinkedIn")
+            st.markdown("### 📱 Preview Mobile")
             
-            # LinkedIn-style preview card
+            # Content score
+            score, feedback = ai_helpers.score_content(content)
+            
+            # Score display with color
+            if score >= 80:
+                score_color = "#10b981"
+                score_label = "Excelente"
+            elif score >= 60:
+                score_color = "#f59e0b"
+                score_label = "Bom"
+            else:
+                score_color = "#ef4444"
+                score_label = "Precisa melhorar"
+            
             st.markdown(f"""
             <div style="
-                background: white;
-                border: 1px solid #e0e0e0;
+                background: {score_color};
+                color: white;
+                padding: 1rem;
                 border-radius: 8px;
-                padding: 1.5rem;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                text-align: center;
+                margin-bottom: 1rem;
             ">
-                <div style="display: flex; align-items: center; margin-bottom: 1rem;">
-                    <div style="
-                        width: 48px;
-                        height: 48px;
-                        border-radius: 50%;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        color: white;
-                        font-weight: bold;
-                        font-size: 1.2rem;
-                        margin-right: 0.75rem;
-                    ">U</div>
-                    <div>
-                        <div style="font-weight: 600; color: #000;">Seu Nome</div>
-                        <div style="font-size: 0.85rem; color: #666;">Seu cargo • LinkedIn</div>
-                        <div style="font-size: 0.75rem; color: #666;">Agora</div>
-                    </div>
-                </div>
-                <div style="
-                    color: #000;
-                    line-height: 1.6;
-                    white-space: pre-wrap;
-                    word-wrap: break-word;
-                ">{content}</div>
+                <div style="font-size: 2rem; font-weight: bold;">{score}/100</div>
+                <div>{score_label}</div>
             </div>
             """, unsafe_allow_html=True)
+            
+            # Feedback list
+            with st.expander("📊 Ver análise detalhada", expanded=False):
+                for item in feedback:
+                    st.markdown(f"- {item}")
+            
+            # Mobile LinkedIn preview (iPhone style)
+            st.markdown(f"""
+            <div style="
+                max-width: 375px;
+                margin: 0 auto;
+                background: #000;
+                border-radius: 40px;
+                padding: 15px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            ">
+                <!-- iPhone notch -->
+                <div style="
+                    background: #000;
+                    height: 30px;
+                    border-radius: 0 0 20px 20px;
+                    margin: -15px -15px 10px -15px;
+                "></div>
+                
+                <!-- Screen content -->
+                <div style="
+                    background: white;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    min-height: 500px;
+                ">
+                    <!-- LinkedIn header -->
+                    <div style="
+                        padding: 12px;
+                        border-bottom: 1px solid #e0e0e0;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                    ">
+                        <div style="color: #0a66c2; font-weight: bold; font-size: 18px;">in</div>
+                        <div style="color: #666; font-size: 12px;">Feed</div>
+                    </div>
+                    
+                    <!-- Post -->
+                    <div style="padding: 12px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <div style="
+                                width: 48px;
+                                height: 48px;
+                                border-radius: 50%;
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: white;
+                                font-weight: bold;
+                                font-size: 18px;
+                                margin-right: 8px;
+                            ">U</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #000; font-size: 14px;">Seu Nome</div>
+                                <div style="font-size: 12px; color: #666;">Seu cargo</div>
+                                <div style="font-size: 11px; color: #666;">Agora • 🌐</div>
+                            </div>
+                        </div>
+                        <div style="
+                            color: #000;
+                            line-height: 1.5;
+                            white-space: pre-wrap;
+                            word-wrap: break-word;
+                            font-size: 14px;
+                        ">{content}</div>
+                        
+                        <!-- Engagement buttons -->
+                        <div style="
+                            display: flex;
+                            justify-content: space-around;
+                            padding-top: 8px;
+                            margin-top: 12px;
+                            border-top: 1px solid #e0e0e0;
+                        ">
+                            <div style="color: #666; font-size: 13px;">👍 Curtir</div>
+                            <div style="color: #666; font-size: 13px;">💬 Comentar</div>
+                            <div style="color: #666; font-size: 13px;">🔄 Compartilhar</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- iPhone home indicator -->
+                <div style="
+                    background: #fff;
+                    height: 5px;
+                    width: 134px;
+                    border-radius: 100px;
+                    margin: 10px auto 0;
+                "></div>
+            </div>
+            """, unsafe_allow_html=True)
+
         
         st.markdown("---")
         
