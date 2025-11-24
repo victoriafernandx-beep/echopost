@@ -239,9 +239,22 @@ if page == "🏠 Home":
     
     st.markdown("## 👋 Bem-vindo ao EchoPost!")
     
-    # Metrics Cards
-    metrics = analytics.get_metrics()
+    # Period selector
+    col_title, col_period = st.columns([3, 1])
+    with col_period:
+        period_options = {
+            "7 dias": 7,
+            "30 dias": 30,
+            "90 dias": 90,
+            "1 ano": 365
+        }
+        selected_period = st.selectbox("📅 Período", list(period_options.keys()), index=1, label_visibility="collapsed")
+        period_days = period_options[selected_period]
     
+    # Get metrics for selected period
+    metrics = analytics.get_metrics(period_days)
+    
+    # Metrics Cards with comparison
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
@@ -249,16 +262,18 @@ if page == "🏠 Home":
         <div class="post-card" style="text-align: center;">
             <div style="color: #667eea; font-size: 0.9rem; margin-bottom: 0.5rem;">👥 Seguidores</div>
             <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['followers']:,}</div>
-            <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">↑ {metrics['followers_change']}</div>
+            <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">↑ {metrics['followers_change']} ({metrics['followers_percent']})</div>
+            <div style="color: #666; font-size: 0.75rem;">vs período anterior</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
         st.markdown(f"""
         <div class="post-card" style="text-align: center;">
-            <div style="color: #667eea; font-size: 0.9rem; margin-bottom: 0.5rem;">👁️ Impressões (7d)</div>
+            <div style="color: #667eea; font-size: 0.9rem; margin-bottom: 0.5rem;">👁️ Impressões</div>
             <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['impressions']:,}</div>
             <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">↑ {metrics['impressions_change']}</div>
+            <div style="color: #666; font-size: 0.75rem;">vs período anterior</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -268,6 +283,7 @@ if page == "🏠 Home":
             <div style="color: #667eea; font-size: 0.9rem; margin-bottom: 0.5rem;">💬 Engajamento</div>
             <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['engagement']}%</div>
             <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">↑ {metrics['engagement_change']}</div>
+            <div style="color: #666; font-size: 0.75rem;">vs período anterior</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -277,8 +293,29 @@ if page == "🏠 Home":
             <div style="color: #667eea; font-size: 0.9rem; margin-bottom: 0.5rem;">📝 Posts</div>
             <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['total_posts']}</div>
             <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">↑ {metrics['posts_change']}</div>
+            <div style="color: #666; font-size: 0.75rem;">vs período anterior</div>
         </div>
         """, unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Insights Section
+    st.markdown("### 💡 Insights Automáticos")
+    insights = analytics.get_insights(metrics)
+    
+    cols_insights = st.columns(len(insights))
+    for idx, insight in enumerate(insights):
+        with cols_insights[idx]:
+            bg_color = "#d1fae5" if insight['type'] == "positive" else "#fef3c7" if insight['type'] == "tip" else "#dbeafe"
+            text_color = "#065f46" if insight['type'] == "positive" else "#92400e" if insight['type'] == "tip" else "#1e40af"
+            
+            st.markdown(f"""
+            <div style="background: {bg_color}; padding: 1rem; border-radius: 8px; height: 100%;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">{insight['icon']}</div>
+                <div style="font-weight: 600; color: {text_color}; margin-bottom: 0.25rem;">{insight['title']}</div>
+                <div style="font-size: 0.85rem; color: {text_color};">{insight['description']}</div>
+            </div>
+            """, unsafe_allow_html=True)
     
     st.markdown("<br>", unsafe_allow_html=True)
     
