@@ -455,96 +455,34 @@ elif page == "✨ Gerador de Posts":
             
             # Mobile LinkedIn preview (iPhone style)
             st.markdown(f"""
-            <div style="
-                max-width: 375px;
-                margin: 0 auto;
-                background: #000;
-                border-radius: 40px;
-                padding: 15px;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            ">
-                <!-- iPhone notch -->
-                <div style="
-                    background: #000;
-                    height: 30px;
-                    border-radius: 0 0 20px 20px;
-                    margin: -15px -15px 10px -15px;
-                "></div>
-                
-                <!-- Screen content -->
-                <div style="
-                    background: white;
-                    border-radius: 8px;
-                    overflow: hidden;
-                    min-height: 500px;
-                ">
-                    <!-- LinkedIn header -->
-                    <div style="
-                        padding: 12px;
-                        border-bottom: 1px solid #e0e0e0;
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                    ">
+            <div style="max-width: 375px; margin: 0 auto; background: #000; border-radius: 40px; padding: 15px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                <div style="background: #000; height: 30px; border-radius: 0 0 20px 20px; margin: -15px -15px 10px -15px;"></div>
+                <div style="background: white; border-radius: 8px; overflow: hidden; min-height: 500px;">
+                    <div style="padding: 12px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between;">
                         <div style="color: #0a66c2; font-weight: bold; font-size: 18px;">in</div>
                         <div style="color: #666; font-size: 12px;">Feed</div>
                     </div>
-                    
-                    <!-- Post -->
                     <div style="padding: 12px;">
                         <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                            <div style="
-                                width: 48px;
-                                height: 48px;
-                                border-radius: 50%;
-                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                color: white;
-                                font-weight: bold;
-                                font-size: 18px;
-                                margin-right: 8px;
-                            ">U</div>
+                            <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px; margin-right: 8px;">U</div>
                             <div style="flex: 1;">
                                 <div style="font-weight: 600; color: #000; font-size: 14px;">Seu Nome</div>
                                 <div style="font-size: 12px; color: #666;">Seu cargo</div>
                                 <div style="font-size: 11px; color: #666;">Agora • 🌐</div>
                             </div>
                         </div>
-                        <div style="
-                            color: #000;
-                            line-height: 1.5;
-                            white-space: pre-wrap;
-                            word-wrap: break-word;
-                            font-size: 14px;
-                        ">{content}</div>
-                        
-                        <!-- Engagement buttons -->
-                        <div style="
-                            display: flex;
-                            justify-content: space-around;
-                            padding-top: 8px;
-                            margin-top: 12px;
-                            border-top: 1px solid #e0e0e0;
-                        ">
+                        <div style="color: #000; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; font-size: 14px;">{content}</div>
+                        <div style="display: flex; justify-content: space-around; padding-top: 8px; margin-top: 12px; border-top: 1px solid #e0e0e0;">
                             <div style="color: #666; font-size: 13px;">👍 Curtir</div>
                             <div style="color: #666; font-size: 13px;">💬 Comentar</div>
                             <div style="color: #666; font-size: 13px;">🔄 Compartilhar</div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- iPhone home indicator -->
-                <div style="
-                    background: #fff;
-                    height: 5px;
-                    width: 134px;
-                    border-radius: 100px;
-                    margin: 10px auto 0;
-                "></div>
+                <div style="background: #fff; height: 5px; width: 134px; border-radius: 100px; margin: 10px auto 0;"></div>
             </div>
             """, unsafe_allow_html=True)
+
 
         
         st.markdown("---")
