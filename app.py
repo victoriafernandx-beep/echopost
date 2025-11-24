@@ -28,10 +28,27 @@ st.markdown("""
         background: transparent;
     }
     
-    h1, h2, h3 {
+    /* Main title styling */
+    [data-testid="stHeader"] {
+        background: transparent;
+    }
+    
+    h1 {
+        color: #1a1a1a !important;
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        display: inline-block;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    h2, h3 {
         color: white !important;
         font-weight: 700;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
+
     
     .post-card {
         background: rgba(255, 255, 255, 0.95);
