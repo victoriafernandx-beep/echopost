@@ -340,7 +340,7 @@ elif page == "✨ Gerador de Posts":
         counter_class = "warning" if char_count > linkedin_limit else ""
         st.markdown(f'<div class="char-counter {counter_class}">{char_count} / {linkedin_limit} caracteres</div>', unsafe_allow_html=True)
         
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
             if st.button("💾 Salvar no Banco de Dados", use_container_width=True):
                 user_id = "test_user"
@@ -352,6 +352,19 @@ elif page == "✨ Gerador de Posts":
                     st.error("❌ Erro ao salvar.")
         
         with col2:
+            from src import linkedin
+            if linkedin.is_connected():
+                if st.button("🔗 Publicar no LinkedIn", use_container_width=True):
+                    success, message = linkedin.post_to_linkedin(content)
+                    if success:
+                        st.success(message)
+                        st.balloons()
+                    else:
+                        st.error(message)
+            else:
+                st.info("Conecte o LinkedIn nas Configurações")
+        
+        with col3:
             if st.button("📋 Copiar para Clipboard", use_container_width=True):
                 st.code(content, language=None)
                 st.info("👆 Copie o texto acima!")
@@ -361,6 +374,28 @@ elif page == "📡 News Radar":
     st.info("🚧 Em breve: Notícias relevantes para o seu setor com geração automática de posts!")
 
 elif page == "⚙️ Configurações":
+    from src import linkedin
+    
     st.markdown("## ⚙️ Configurações")
-    st.info("🚧 Em breve: Gerencie sua conta e chaves de API.")
+    
+    st.markdown("### 🔗 Integração LinkedIn")
+    
+    if linkedin.is_connected():
+        user = st.session_state.get('linkedin_user', {})
+        st.success(f"✅ Conectado como: **{user.get('name', 'Usuário')}**")
+        
+        if st.button("🔓 Desconectar LinkedIn"):
+            linkedin.disconnect_linkedin()
+            st.rerun()
+    else:
+        st.info("📌 Conecte sua conta do LinkedIn para publicar posts diretamente da plataforma.")
+        
+        if st.button("🔗 Conectar LinkedIn"):
+            if linkedin.connect_linkedin():
+                st.success("✅ LinkedIn conectado com sucesso!")
+                st.rerun()
+    
+    st.markdown("---")
+    st.markdown("### 🔑 Chaves de API")
+    st.info("🚧 Em breve: Configure suas chaves de API do Gemini e NewsAPI.")
 
