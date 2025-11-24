@@ -1,0 +1,6 @@
+streamlit
+supabase
+google-generativeai
+newsapi-python
+python-dotenv
+watchdog
