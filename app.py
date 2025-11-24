@@ -186,40 +186,25 @@ if page == "🏠 Home":
         
         popular_posts = analytics.get_popular_posts()
         
-        # Create table HTML
-        table_html = """
-        <div class="post-card">
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="border-bottom: 2px solid #e5e7eb;">
-                        <th style="padding: 0.75rem; text-align: left; color: #667eea; font-weight: 600;">Post</th>
-                        <th style="padding: 0.75rem; text-align: center; color: #667eea; font-weight: 600;">Impressões</th>
-                        <th style="padding: 0.75rem; text-align: center; color: #667eea; font-weight: 600;">Comentários</th>
-                        <th style="padding: 0.75rem; text-align: center; color: #667eea; font-weight: 600;">Salvamentos</th>
-                        <th style="padding: 0.75rem; text-align: center; color: #667eea; font-weight: 600;">Taxa Eng.</th>
-                    </tr>
-                </thead>
-                <tbody>
-        """
+        # Convert to DataFrame for better display
+        import pandas as pd
+        df = pd.DataFrame(popular_posts)
+        df.columns = ['Post', 'Impressões', 'Comentários', 'Salvamentos', 'Taxa Eng.']
         
-        for post in popular_posts:
-            table_html += f"""
-                <tr style="border-bottom: 1px solid #f3f4f6;">
-                    <td style="padding: 0.75rem; color: #1a1a1a;">{post['title']}</td>
-                    <td style="padding: 0.75rem; text-align: center; color: #1a1a1a;">{post['impressions']:,}</td>
-                    <td style="padding: 0.75rem; text-align: center; color: #1a1a1a;">{post['comments']}</td>
-                    <td style="padding: 0.75rem; text-align: center; color: #1a1a1a;">{post['shares']}</td>
-                    <td style="padding: 0.75rem; text-align: center; color: #10b981; font-weight: 600;">{post['engagement']}</td>
-                </tr>
-            """
-        
-        table_html += """
-                </tbody>
-            </table>
-        </div>
-        """
-        
-        st.markdown(table_html, unsafe_allow_html=True)
+        # Style the dataframe
+        st.dataframe(
+            df,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Post": st.column_config.TextColumn("Post", width="medium"),
+                "Impressões": st.column_config.NumberColumn("Impressões", format="%d"),
+                "Comentários": st.column_config.NumberColumn("Comentários"),
+                "Salvamentos": st.column_config.NumberColumn("Salvamentos"),
+                "Taxa Eng.": st.column_config.TextColumn("Taxa Eng.")
+            }
+        )
+
     
     with col_right:
         st.markdown("### 📈 Engajamento (30 dias)")
