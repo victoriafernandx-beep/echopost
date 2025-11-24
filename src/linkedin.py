@@ -1,72 +1,178 @@
 """
-LinkedIn Integration Module
-Handles OAuth authentication and posting to LinkedIn
+LinkedIn Integration with OAuth 2.0
+Real integration with LinkedIn API for posting and analytics
 """
 import streamlit as st
+import requests
+from urllib.parse import urlencode
 
-# LinkedIn OAuth Configuration
-# These will be set in Streamlit secrets when available
-LINKEDIN_CLIENT_ID = st.secrets.get("LINKEDIN_CLIENT_ID", None)
-LINKEDIN_CLIENT_SECRET = st.secrets.get("LINKEDIN_CLIENT_SECRET", None)
-REDIRECT_URI = "https://your-app.streamlit.app/oauth/callback"
+# LinkedIn OAuth endpoints
+LINKEDIN_AUTH_URL = "https://www.linkedin.com/oauth/v2/authorization"
+LINKEDIN_TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
+LINKEDIN_API_BASE = "https://api.linkedin.com/v2"
+
+def get_linkedin_credentials():
+    """Get LinkedIn credentials from secrets"""
+    try:
+        return {
+            "client_id": st.secrets.get("LINKEDIN_CLIENT_ID", ""),
+            "client_secret": st.secrets.get("LINKEDIN_CLIENT_SECRET", ""),
+            "redirect_uri": st.secrets.get("LINKEDIN_REDIRECT_URI", "https://seu-app.streamlit.app")
+        }
+    except:
+        return {
+            "client_id": "",
+            "client_secret": "",
+            "redirect_uri": "https://seu-app.streamlit.app"
+        }
 
 def is_connected():
-    """
-    Check if user has connected their LinkedIn account
-    """
-    return st.session_state.get('linkedin_connected', False)
+    """Check if user is connected to LinkedIn"""
+    return 'linkedin_access_token' in st.session_state and st.session_state['linkedin_access_token'] is not None
+
+def get_authorization_url():
+    """Generate LinkedIn OAuth authorization URL"""
+    creds = get_linkedin_credentials()
+    
+    if not creds['client_id']:
+        return None
+    
+    params = {
+        'response_type': 'code',
+        'client_id': creds['client_id'],
+        'redirect_uri': creds['redirect_uri'],
+        'scope': 'w_member_social r_liteprofile r_emailaddress'
+    }
+    
+    return f"{LINKEDIN_AUTH_URL}?{urlencode(params)}"
+
+def exchange_code_for_token(code):
+    """Exchange authorization code for access token"""
+    creds = get_linkedin_credentials()
+    
+    data = {
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': creds['redirect_uri'],
+        'client_id': creds['client_id'],
+        'client_secret': creds['client_secret']
+    }
+    
+    try:
+        response = requests.post(LINKEDIN_TOKEN_URL, data=data)
+        response.raise_for_status()
+        token_data = response.json()
+        
+        # Store token in session
+        st.session_state['linkedin_access_token'] = token_data['access_token']
+        st.session_state['linkedin_token_expires_in'] = token_data.get('expires_in', 5184000)
+        
+        return True, "Conectado com sucesso!"
+    except Exception as e:
+        return False, f"Erro ao conectar: {str(e)}"
 
 def connect_linkedin():
-    """
-    Initiate LinkedIn OAuth flow
-    In production, this would redirect to LinkedIn's OAuth page
-    """
-    if not LINKEDIN_CLIENT_ID:
-        st.warning("⚠️ LinkedIn API credentials not configured. Add LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET to secrets.")
-        return False
+    """Initiate LinkedIn OAuth flow"""
+    creds = get_linkedin_credentials()
     
-    # Mock connection for demonstration
-    st.session_state['linkedin_connected'] = True
-    st.session_state['linkedin_user'] = {
-        "name": "Usuário Demo",
-        "profile_url": "https://linkedin.com/in/demo"
-    }
-    return True
+    if not creds['client_id'] or not creds['client_secret']:
+        return False, "⚠️ Credenciais do LinkedIn não configuradas. Adicione LINKEDIN_CLIENT_ID e LINKEDIN_CLIENT_SECRET nos secrets."
+    
+    auth_url = get_authorization_url()
+    if auth_url:
+        return True, f"Clique aqui para conectar: {auth_url}"
+    else:
+        return False, "Erro ao gerar URL de autorização"
 
 def disconnect_linkedin():
-    """
-    Disconnect LinkedIn account
-    """
-    st.session_state['linkedin_connected'] = False
-    if 'linkedin_user' in st.session_state:
-        del st.session_state['linkedin_user']
+    """Disconnect from LinkedIn"""
+    if 'linkedin_access_token' in st.session_state:
+        del st.session_state['linkedin_access_token']
+    if 'linkedin_token_expires_in' in st.session_state:
+        del st.session_state['linkedin_token_expires_in']
+    return True, "Desconectado do LinkedIn"
 
-def post_to_linkedin(content):
-    """
-    Post content to LinkedIn
-    In production, this would use LinkedIn's API
-    """
-    if not is_connected():
-        return False, "LinkedIn not connected"
-    
-    if not LINKEDIN_CLIENT_ID:
-        return False, "LinkedIn API not configured"
-    
-    # Mock posting for demonstration
-    # In production, this would make an API call to LinkedIn
-    return True, "Post publicado com sucesso no LinkedIn! (simulado)"
-
-def get_linkedin_metrics():
-    """
-    Fetch metrics from LinkedIn
-    In production, this would use LinkedIn's Analytics API
-    """
+def get_user_profile():
+    """Get LinkedIn user profile"""
     if not is_connected():
         return None
     
-    # Mock metrics
+    headers = {
+        'Authorization': f"Bearer {st.session_state['linkedin_access_token']}",
+        'Content-Type': 'application/json'
+    }
+    
+    try:
+        response = requests.get(f"{LINKEDIN_API_BASE}/me", headers=headers)
+        response.raise_for_status()
+        return response.json()
+    except:
+        return None
+
+def post_to_linkedin(content):
+    """Post content to LinkedIn"""
+    if not is_connected():
+        return False, "Não conectado ao LinkedIn"
+    
+    # Get user profile first
+    profile = get_user_profile()
+    if not profile:
+        return False, "Erro ao obter perfil do usuário"
+    
+    user_id = profile.get('id')
+    
+    # Prepare post data
+    post_data = {
+        "author": f"urn:li:person:{user_id}",
+        "lifecycleState": "PUBLISHED",
+        "specificContent": {
+            "com.linkedin.ugc.ShareContent": {
+                "shareCommentary": {
+                    "text": content
+                },
+                "shareMediaCategory": "NONE"
+            }
+        },
+        "visibility": {
+            "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"
+        }
+    }
+    
+    headers = {
+        'Authorization': f"Bearer {st.session_state['linkedin_access_token']}",
+        'Content-Type': 'application/json',
+        'X-Restli-Protocol-Version': '2.0.0'
+    }
+    
+    try:
+        response = requests.post(
+            f"{LINKEDIN_API_BASE}/ugcPosts",
+            headers=headers,
+            json=post_data
+        )
+        response.raise_for_status()
+        return True, "✅ Post publicado no LinkedIn com sucesso!"
+    except requests.exceptions.HTTPError as e:
+        error_msg = e.response.json() if e.response else str(e)
+        return False, f"❌ Erro ao publicar: {error_msg}"
+    except Exception as e:
+        return False, f"❌ Erro: {str(e)}"
+
+def get_linkedin_metrics():
+    """Get LinkedIn analytics (requires Marketing Developer Platform access)"""
+    if not is_connected():
+        return {
+            "followers": 0,
+            "impressions": 0,
+            "engagement": 0,
+            "error": "Não conectado"
+        }
+    
+    # Note: This requires Marketing Developer Platform approval
+    # For now, return mock data with a note
     return {
         "followers": 15230,
-        "post_impressions_7d": 45000,
-        "engagement_rate": 4.8
+        "impressions": 45000,
+        "engagement": 4.8,
+        "note": "Métricas reais requerem aprovação do Marketing Developer Platform"
     }
