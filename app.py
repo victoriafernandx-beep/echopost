@@ -349,11 +349,32 @@ if page == "🏠 Home":
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Recent Posts Section
-    st.markdown("### 📝 Seus Posts Recentes")
+    # Search and Filter Section
+    st.markdown("### 🔍 Buscar Posts")
     
     user_id = "test_user"
-    posts = database.get_posts(user_id)
+    
+    # Search and filter controls
+    col_search, col_tags, col_fav = st.columns([3, 2, 1])
+    
+    with col_search:
+        search_query = st.text_input("🔎 Buscar por conteúdo ou tópico", placeholder="Digite para buscar...", label_visibility="collapsed")
+    
+    with col_tags:
+        all_tags = database.get_all_tags(user_id)
+        selected_tags = st.multiselect("🏷️ Filtrar por tags", all_tags, placeholder="Todas as tags")
+    
+    with col_fav:
+        show_favorites = st.checkbox("⭐ Favoritos", value=False)
+    
+    # Search posts
+    if search_query or selected_tags or show_favorites:
+        posts = database.search_posts(user_id, query=search_query, tags=selected_tags, favorites_only=show_favorites)
+    else:
+        posts = database.get_posts(user_id)
+    
+    st.markdown(f"**{len(posts)} posts encontrados**")
+    st.markdown("---")
     
     if posts:
         for idx, post in enumerate(posts):
@@ -361,6 +382,8 @@ if page == "🏠 Home":
             content = post.get('content', '')
             created_at = post.get('created_at', '')
             post_id = post.get('id')
+            post_tags = post.get('tags', [])
+            is_favorite = post.get('is_favorite', False)
             
             # Format date
             try:
@@ -369,26 +392,71 @@ if page == "🏠 Home":
             except:
                 formatted_date = created_at
             
-            # Create card
+            # Create card with tags
+            tags_html = ""
+            if post_tags:
+                tags_html = "<div style='margin-top: 0.5rem;'>"
+                for tag in post_tags:
+                    tags_html += f"<span style='background: #667eea; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; margin-right: 0.25rem; display: inline-block;'>🏷️ {tag}</span>"
+                tags_html += "</div>"
+            
+            fav_icon = "⭐" if is_favorite else "☆"
+            
             st.markdown(f"""
             <div class="post-card">
-                <div class="post-topic">{topic}</div>
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div class="post-topic">{topic}</div>
+                    <div style="font-size: 1.5rem; cursor: pointer;">{fav_icon}</div>
+                </div>
                 <div class="post-meta">📅 {formatted_date} • {len(content)} caracteres</div>
                 <div class="post-content">{content}</div>
+                {tags_html}
             </div>
             """, unsafe_allow_html=True)
             
-            col1, col2, col3 = st.columns([1, 1, 4])
+            col1, col2, col3, col4 = st.columns([1, 1, 2, 2])
             with col1:
                 if st.button("🗑️ Deletar", key=f"del_{idx}"):
                     database.delete_post(post_id)
                     st.rerun()
             with col2:
+                if st.button(f"{'⭐' if not is_favorite else '☆'} Favorito", key=f"fav_{idx}"):
+                    database.toggle_favorite(post_id, not is_favorite)
+                    st.rerun()
+            with col3:
+                # Tag editor
+                new_tags = st.multiselect(
+                    "Tags",
+                    options=all_tags + ["+ Nova tag"],
+                    default=post_tags,
+                    key=f"tags_{idx}",
+                    label_visibility="collapsed"
+                )
+                
+                # Handle new tag creation
+                if "+ Nova tag" in new_tags:
+                    new_tags.remove("+ Nova tag")
+                    new_tag = st.text_input("Nova tag:", key=f"new_tag_{idx}", placeholder="Digite a nova tag")
+                    if new_tag and st.button("Adicionar", key=f"add_tag_{idx}"):
+                        new_tags.append(new_tag)
+                        database.update_post_tags(post_id, new_tags)
+                        st.rerun()
+                elif new_tags != post_tags:
+                    if st.button("💾 Salvar tags", key=f"save_tags_{idx}"):
+                        database.update_post_tags(post_id, new_tags)
+                        st.success("Tags atualizadas!")
+                        st.rerun()
+            
+            with col4:
                 if st.button("📋 Copiar", key=f"copy_{idx}"):
                     st.code(content, language=None)
                     st.success("Conteúdo exibido acima para copiar!")
     else:
-        st.info("🎯 Nenhum post encontrado. Vá ao Gerador de Posts para criar um!")
+        if search_query or selected_tags or show_favorites:
+            st.info("🔍 Nenhum post encontrado com esses filtros.")
+        else:
+            st.info("🎯 Nenhum post encontrado. Vá ao Gerador de Posts para criar um!")
+
 
 
 elif page == "✨ Gerador de Posts":
@@ -579,17 +647,34 @@ elif page == "✨ Gerador de Posts":
         
         st.markdown("---")
         
+        # Tags selector
+        st.markdown("#### 🏷️ Adicionar Tags")
+        user_id = "test_user"
+        existing_tags = database.get_all_tags(user_id)
+        post_tags = st.multiselect(
+            "Selecione ou crie tags para organizar este post:",
+            options=existing_tags + ["+ Nova tag"],
+            key="post_tags_selector"
+        )
+        
+        # Handle new tag creation
+        if "+ Nova tag" in post_tags:
+            post_tags.remove("+ Nova tag")
+            new_tag = st.text_input("Digite a nova tag:", key="new_post_tag", placeholder="Ex: Vendas, Marketing, Tech...")
+            if new_tag:
+                post_tags.append(new_tag)
+        
         # Action buttons
         col1, col2, col3 = st.columns(3)
         with col1:
             if st.button("💾 Salvar no Banco de Dados", use_container_width=True):
-                user_id = "test_user"
-                result = database.create_post(user_id, content, st.session_state['last_topic'])
+                result = database.create_post(user_id, content, st.session_state['last_topic'], tags=post_tags)
                 if result:
                     st.success("✅ Post salvo com sucesso!")
                     st.balloons()
                 else:
                     st.error("❌ Erro ao salvar.")
+
         
         with col2:
             from src import linkedin
