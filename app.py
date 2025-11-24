@@ -130,11 +130,138 @@ st.sidebar.title("🧭 Navegação")
 page = st.sidebar.radio("Ir para", ["🏠 Home", "✨ Gerador de Posts", "📡 News Radar", "⚙️ Configurações"])
 
 if page == "🏠 Home":
-    st.markdown("## Bem-vindo ao EchoPost!")
-    st.markdown("Use o menu lateral para navegar entre as funcionalidades.")
+    from src import analytics
+    import plotly.graph_objects as go
     
-    st.markdown("---")
-    st.markdown("## 📝 Seus Posts Recentes")
+    st.markdown("## 👋 Bem-vindo ao EchoPost!")
+    
+    # Metrics Cards
+    metrics = analytics.get_metrics()
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.markdown(f"""
+        <div class="post-card" style="text-align: center;">
+            <div style="color: #667eea; font-size: 0.9rem; margin-bottom: 0.5rem;">👥 Seguidores</div>
+            <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['followers']:,}</div>
+            <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">↑ {metrics['followers_change']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown(f"""
+        <div class="post-card" style="text-align: center;">
+            <div style="color: #667eea; font-size: 0.9rem; margin-bottom: 0.5rem;">👁️ Impressões (7d)</div>
+            <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['impressions']:,}</div>
+            <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">↑ {metrics['impressions_change']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown(f"""
+        <div class="post-card" style="text-align: center;">
+            <div style="color: #667eea; font-size: 0.9rem; margin-bottom: 0.5rem;">💬 Engajamento</div>
+            <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['engagement']}%</div>
+            <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">↑ {metrics['engagement_change']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown(f"""
+        <div class="post-card" style="text-align: center;">
+            <div style="color: #667eea; font-size: 0.9rem; margin-bottom: 0.5rem;">📝 Posts</div>
+            <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['total_posts']}</div>
+            <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">↑ {metrics['posts_change']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Two columns: Popular Posts and Engagement Chart
+    col_left, col_right = st.columns([3, 2])
+    
+    with col_left:
+        st.markdown("### 📊 Publicações mais populares da semana")
+        
+        popular_posts = analytics.get_popular_posts()
+        
+        # Create table HTML
+        table_html = """
+        <div class="post-card">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #e5e7eb;">
+                        <th style="padding: 0.75rem; text-align: left; color: #667eea; font-weight: 600;">Post</th>
+                        <th style="padding: 0.75rem; text-align: center; color: #667eea; font-weight: 600;">Impressões</th>
+                        <th style="padding: 0.75rem; text-align: center; color: #667eea; font-weight: 600;">Comentários</th>
+                        <th style="padding: 0.75rem; text-align: center; color: #667eea; font-weight: 600;">Salvamentos</th>
+                        <th style="padding: 0.75rem; text-align: center; color: #667eea; font-weight: 600;">Taxa Eng.</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """
+        
+        for post in popular_posts:
+            table_html += f"""
+                <tr style="border-bottom: 1px solid #f3f4f6;">
+                    <td style="padding: 0.75rem; color: #1a1a1a;">{post['title']}</td>
+                    <td style="padding: 0.75rem; text-align: center; color: #1a1a1a;">{post['impressions']:,}</td>
+                    <td style="padding: 0.75rem; text-align: center; color: #1a1a1a;">{post['comments']}</td>
+                    <td style="padding: 0.75rem; text-align: center; color: #1a1a1a;">{post['shares']}</td>
+                    <td style="padding: 0.75rem; text-align: center; color: #10b981; font-weight: 600;">{post['engagement']}</td>
+                </tr>
+            """
+        
+        table_html += """
+                </tbody>
+            </table>
+        </div>
+        """
+        
+        st.markdown(table_html, unsafe_allow_html=True)
+    
+    with col_right:
+        st.markdown("### 📈 Engajamento (30 dias)")
+        
+        dates, engagement = analytics.get_engagement_chart_data()
+        
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=dates,
+            y=engagement,
+            mode='lines+markers',
+            line=dict(color='#667eea', width=3),
+            marker=dict(size=6, color='#764ba2'),
+            fill='tozeroy',
+            fillcolor='rgba(102, 126, 234, 0.1)'
+        ))
+        
+        fig.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(255,255,255,0.95)',
+            margin=dict(l=20, r=20, t=20, b=20),
+            height=300,
+            xaxis=dict(
+                showgrid=False,
+                showline=True,
+                linecolor='#e5e7eb'
+            ),
+            yaxis=dict(
+                showgrid=True,
+                gridcolor='#f3f4f6',
+                showline=False,
+                title="Taxa (%)"
+            ),
+            hovermode='x unified'
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Recent Posts Section
+    st.markdown("### 📝 Seus Posts Recentes")
     
     user_id = "test_user"
     posts = database.get_posts(user_id)
@@ -173,6 +300,7 @@ if page == "🏠 Home":
                     st.success("Conteúdo exibido acima para copiar!")
     else:
         st.info("🎯 Nenhum post encontrado. Vá ao Gerador de Posts para criar um!")
+
 
 elif page == "✨ Gerador de Posts":
     st.markdown("## ✨ Gerador de Conteúdo")
