@@ -11,8 +11,18 @@ import toml
 
 try:
     secrets = toml.load(".streamlit/secrets.toml")
-    url = secrets["secrets"]["SUPABASE_URL"]
-    key = secrets["secrets"]["SUPABASE_KEY"]
+    
+    # Handle nested [secrets] section or flat file
+    if "secrets" in secrets and "SUPABASE_URL" in secrets["secrets"]:
+        url = secrets["secrets"]["SUPABASE_URL"]
+        key = secrets["secrets"]["SUPABASE_KEY"]
+    elif "SUPABASE_URL" in secrets:
+        url = secrets["SUPABASE_URL"]
+        key = secrets["SUPABASE_KEY"]
+    else:
+        print("Error: SUPABASE_URL not found in secrets.toml")
+        sys.exit(1)
+
 except Exception as e:
     print(f"Error loading secrets: {e}")
     sys.exit(1)

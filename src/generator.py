@@ -29,8 +29,8 @@ def generate_post(topic, tone="Profissional"):
     if not configure_genai():
         return "Erro: Chave de API não configurada."
 
-    # Using gemini-pro which is stable and widely available
-    model = genai.GenerativeModel('gemini-pro')
+    # Using gemini-flash-latest which is stable and widely available
+    model = genai.GenerativeModel('gemini-flash-latest')
     
     style_context = get_style_examples()
     
