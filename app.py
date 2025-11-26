@@ -745,8 +745,116 @@ elif page == "✨ Gerador de Posts":
 
 
 elif page == "📡 News Radar":
+    from src import news
+    
     st.markdown("## 📡 News Radar")
-    st.info("🚧 Em breve: Notícias relevantes para o seu setor com geração automática de posts!")
+    st.markdown("### Descubra notícias relevantes e gere posts automaticamente")
+    
+    # Check if API key is configured
+    api_key = news.get_news_api_key()
+    if not api_key:
+        st.warning("⚠️ **NewsAPI não configurada**")
+        st.info("Para usar o News Radar, adicione `NEWS_API_KEY` nos secrets do Streamlit Cloud.")
+        st.markdown("Obtenha sua chave gratuita em: [NewsAPI.org](https://newsapi.org)")
+    else:
+        # Search interface
+        col_search, col_lang = st.columns([3, 1])
+        
+        with col_search:
+            search_topic = st.text_input(
+                "🔍 Buscar notícias sobre:",
+                placeholder="Ex: Inteligência Artificial, Tecnologia, Startups...",
+                key="news_search"
+            )
+        
+        with col_lang:
+            language = st.selectbox(
+                "Idioma",
+                options=[("Português", "pt"), ("Inglês", "en"), ("Espanhol", "es")],
+                format_func=lambda x: x[0],
+                key="news_lang"
+            )
+        
+        if st.button("🔎 Buscar Notícias", use_container_width=True, type="primary"):
+            if search_topic:
+                with st.spinner("🔍 Buscando notícias..."):
+                    articles = news.fetch_news(search_topic, language=language[1])
+                    st.session_state['news_articles'] = articles
+                    st.session_state['news_topic'] = search_topic
+            else:
+                st.warning("Digite um tópico para buscar.")
+        
+        # Display results
+        if 'news_articles' in st.session_state and st.session_state['news_articles']:
+            articles = st.session_state['news_articles']
+            st.markdown(f"### 📰 {len(articles)} notícias encontradas sobre '{st.session_state['news_topic']}'")
+            st.markdown("---")
+            
+            # Display articles in grid
+            for idx, article in enumerate(articles):
+                # Create card
+                col_img, col_content = st.columns([1, 2])
+                
+                with col_img:
+                    if article.get('urlToImage'):
+                        st.image(article['urlToImage'], use_container_width=True)
+                    else:
+                        st.markdown("""
+                        <div style="
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            height: 150px;
+                            border-radius: 8px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: white;
+                            font-size: 3rem;
+                        ">📰</div>
+                        """, unsafe_allow_html=True)
+                
+                with col_content:
+                    st.markdown(f"### {article['title']}")
+                    st.caption(f"📅 {article.get('publishedAt', 'N/A')[:10]} • 📰 {article['source']['name']}")
+                    
+                    description = article.get('description', 'Sem descrição disponível.')
+                    if len(description) > 200:
+                        description = description[:200] + "..."
+                    st.markdown(description)
+                    
+                    col_btn1, col_btn2 = st.columns(2)
+                    with col_btn1:
+                        st.link_button("🔗 Ler Notícia", article['url'], use_container_width=True)
+                    
+                    with col_btn2:
+                        if st.button("✨ Gerar Post com IA", key=f"gen_news_{idx}", use_container_width=True):
+                            # Format news for AI
+                            news_context = news.format_news_for_prompt(article)
+                            
+                            # Generate post
+                            with st.spinner("✨ Gerando post..."):
+                                from src import generator
+                                prompt = f"""Crie um post profissional e envolvente para LinkedIn baseado nesta notícia:
+                                
+{news_context}
+
+O post deve:
+- Começar com um gancho forte
+- Apresentar a notícia de forma clara
+- Adicionar sua análise ou opinião
+- Terminar com uma pergunta para engajamento
+- Usar emojis estrategicamente
+- Ter entre 150-250 palavras
+"""
+                                content = generator.generate_post(prompt, tone="Profissional")
+                                st.session_state['last_post'] = content
+                                st.session_state['last_topic'] = article['title']
+                                st.success("✅ Post gerado! Vá para 'Gerador de Posts' para editar e publicar.")
+                                st.balloons()
+                
+                st.markdown("---")
+        
+        elif 'news_articles' in st.session_state and not st.session_state['news_articles']:
+            st.info("🔍 Nenhuma notícia encontrada. Tente outro tópico ou idioma.")
 
 elif page == "⚙️ Configurações":
     from src import linkedin
