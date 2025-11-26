@@ -41,7 +41,7 @@ def get_authorization_url():
         'response_type': 'code',
         'client_id': creds['client_id'],
         'redirect_uri': creds['redirect_uri'],
-        'scope': 'w_member_social r_liteprofile r_emailaddress'
+        'scope': 'openid profile email w_member_social'
     }
     
     return f"{LINKEDIN_AUTH_URL}?{urlencode(params)}"
@@ -93,20 +93,29 @@ def disconnect_linkedin():
     return True, "Desconectado do LinkedIn"
 
 def get_user_profile():
-    """Get LinkedIn user profile"""
+    """Get LinkedIn user profile using OpenID Connect"""
     if not is_connected():
         return None
     
     headers = {
         'Authorization': f"Bearer {st.session_state['linkedin_access_token']}",
-        'Content-Type': 'application/json'
     }
     
     try:
-        response = requests.get(f"{LINKEDIN_API_BASE}/me", headers=headers)
+        # Use OIDC userinfo endpoint
+        response = requests.get("https://api.linkedin.com/v2/userinfo", headers=headers)
         response.raise_for_status()
-        return response.json()
-    except:
+        data = response.json()
+        
+        # Map OIDC fields to our expected format
+        return {
+            "id": data.get("sub"),
+            "name": data.get("name"),
+            "email": data.get("email"),
+            "picture": data.get("picture")
+        }
+    except Exception as e:
+        print(f"Error fetching profile: {e}")
         return None
 
 def post_to_linkedin(content):
