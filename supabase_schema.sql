@@ -4,17 +4,32 @@ create table public.posts (
   user_id text not null,
   content text not null,
   topic text,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  tags text[] default '{}',
+  is_favorite boolean default false,
+  word_count integer,
+  hashtags text[]
 );
 
 -- Set up Row Level Security (RLS)
--- For now, we allow public access for simplicity, but in production you should restrict this.
 alter table public.posts enable row level security;
 
+-- Policy for reading posts (public for now, or restricted to user_id in future)
 create policy "Enable read access for all users"
 on public.posts for select
 using (true);
 
+-- Policy for inserting posts
 create policy "Enable insert access for all users"
 on public.posts for insert
 with check (true);
+
+-- Policy for updating posts
+create policy "Enable update access for all users"
+on public.posts for update
+using (true);
+
+-- Policy for deleting posts
+create policy "Enable delete access for all users"
+on public.posts for delete
+using (true);

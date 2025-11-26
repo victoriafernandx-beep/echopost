@@ -3,6 +3,9 @@ import os
 secrets_content = """SUPABASE_URL = "https://nqiaokjpdszfuehvprep.supabase.co"
 SUPABASE_KEY = "sb_publishable_k-bAvB9t_FNS3zeNoEInHA_PdMcAW-n"
 GEMINI_API_KEY = "AIzaSyBSXMVqA8KmNuHS7Wh2w1cpbCURQJsofgE"
+LINKEDIN_CLIENT_ID = "SEU_CLIENT_ID"
+LINKEDIN_CLIENT_SECRET = "SEU_CLIENT_SECRET"
+LINKEDIN_REDIRECT_URI = "http://localhost:8503"
 """
 
 os.makedirs(".streamlit", exist_ok=True)
