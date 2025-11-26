@@ -768,10 +768,6 @@ elif page == "⚙️ Configurações":
         auth_url = linkedin.get_authorization_url()
         if auth_url:
             st.link_button("🔗 Conectar LinkedIn", auth_url, type="primary", use_container_width=True)
-            # Debug info
-            creds = linkedin.get_linkedin_credentials()
-            st.caption(f"🔍 Debug: Redirect URI sendo usada: `{creds['redirect_uri']}`")
-            st.caption("Certifique-se que esta URL está EXATAMENTE igual no LinkedIn Developers > Auth > Redirect URLs")
         else:
             st.error("⚠️ Credenciais não configuradas. Verifique os secrets.")
     
