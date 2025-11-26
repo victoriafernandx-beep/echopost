@@ -3,6 +3,18 @@ from src import database
 from src import generator
 import datetime
 
+# Handle OAuth callback
+if "code" in st.query_params:
+    code = st.query_params["code"]
+    from src import linkedin
+    success, message = linkedin.exchange_code_for_token(code)
+    if success:
+        st.success("✅ LinkedIn conectado com sucesso!")
+        # Clear query params to avoid re-execution
+        st.query_params.clear()
+    else:
+        st.error(f"❌ Erro ao conectar: {message}")
+
 st.set_page_config(
     page_title="EchoPost",
     page_icon="📢",
@@ -753,10 +765,11 @@ elif page == "⚙️ Configurações":
     else:
         st.info("📌 Conecte sua conta do LinkedIn para publicar posts diretamente da plataforma.")
         
-        if st.button("🔗 Conectar LinkedIn"):
-            if linkedin.connect_linkedin():
-                st.success("✅ LinkedIn conectado com sucesso!")
-                st.rerun()
+        auth_url = linkedin.get_authorization_url()
+        if auth_url:
+            st.link_button("🔗 Conectar LinkedIn", auth_url, type="primary", use_container_width=True)
+        else:
+            st.error("⚠️ Credenciais não configuradas. Verifique os secrets.")
     
     st.markdown("---")
     st.markdown("### 🔑 Chaves de API")
