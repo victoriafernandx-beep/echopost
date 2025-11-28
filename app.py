@@ -22,68 +22,105 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for LinPost (Minimalist Black/Blue/Purple)
-st.markdown("""
+# Theme Toggle
+if 'dark_mode' not in st.session_state:
+    st.session_state['dark_mode'] = True
+
+with st.sidebar:
+    col_theme, col_void = st.columns([2, 1])
+    with col_theme:
+        mode_label = "🌙 Modo Escuro" if st.session_state['dark_mode'] else "☀️ Modo Claro"
+        if st.button(mode_label, use_container_width=True):
+            st.session_state['dark_mode'] = not st.session_state['dark_mode']
+            st.rerun()
+
+# Dynamic CSS based on theme
+theme_colors = {
+    "dark": {
+        "bg_main": "#0f172a",
+        "bg_sidebar": "rgba(15, 23, 42, 0.98)",
+        "card_bg": "rgba(30, 41, 59, 0.7)",
+        "text_main": "#f8fafc",
+        "text_sec": "#cbd5e1",
+        "border": "rgba(255, 255, 255, 0.08)",
+        "input_bg": "rgba(30, 41, 59, 0.5)",
+        "metric_val": "white"
+    },
+    "light": {
+        "bg_main": "#f8f9fa",
+        "bg_sidebar": "#ffffff",
+        "card_bg": "#ffffff",
+        "text_main": "#1a1a1a",
+        "text_sec": "#4b5563",
+        "border": "#e5e7eb",
+        "input_bg": "#ffffff",
+        "metric_val": "#1a1a1a"
+    }
+}
+
+current_theme = theme_colors["dark"] if st.session_state['dark_mode'] else theme_colors["light"]
+
+st.markdown(f"""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
     
-    * {
+    * {{
         font-family: 'Outfit', sans-serif !important;
-    }
+    }}
     
-    /* Main Background - Dark Premium */
-    .stApp {
-        background: #0f172a;
-        background-image: 
+    /* Main Background */
+    .stApp {{
+        background-color: {current_theme['bg_main']};
+        {f'''background-image: 
             radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.15) 0px, transparent 50%),
-            radial-gradient(at 100% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%);
-    }
+            radial-gradient(at 100% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%);''' if st.session_state['dark_mode'] else ''}
+    }}
     
-    /* Sidebar - Glassmorphism */
-    section[data-testid="stSidebar"] {
-        background: rgba(15, 23, 42, 0.95);
-        border-right: 1px solid rgba(255, 255, 255, 0.05);
-    }
+    /* Sidebar */
+    section[data-testid="stSidebar"] {{
+        background: {current_theme['bg_sidebar']};
+        border-right: 1px solid {current_theme['border']};
+    }}
     
     /* Typography */
-    h1, h2, h3, h4, h5, h6 {
-        color: #f8fafc !important;
+    h1, h2, h3, h4, h5, h6 {{
+        color: {current_theme['text_main']} !important;
         letter-spacing: -0.5px;
-    }
+    }}
     
-    p, label, .stMarkdown {
-        color: #cbd5e1 !important;
-    }
+    p, label, .stMarkdown, div[data-testid="stMarkdownContainer"] > p {{
+        color: {current_theme['text_sec']} !important;
+    }}
     
-    /* Cards - Glassmorphism Dark */
-    .post-card {
-        background: rgba(30, 41, 59, 0.7);
+    /* Cards */
+    .post-card {{
+        background: {current_theme['card_bg']};
         backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid {current_theme['border']};
         border-radius: 16px;
         padding: 1.5rem;
         margin-bottom: 1rem;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }}
     
-    .post-card:hover {
+    .post-card:hover {{
         transform: translateY(-4px);
-        background: rgba(30, 41, 59, 0.9);
         border-color: #3b82f6;
         box-shadow: 0 20px 40px -12px rgba(37, 99, 235, 0.2);
-    }
+    }}
     
-    .post-topic {
-        background: linear-gradient(to right, #60a5fa, #a78bfa);
+    .post-topic {{
+        background: linear-gradient(to right, #2563eb, #7c3aed);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         font-weight: 600;
         font-size: 1.1rem;
         margin-bottom: 0.5rem;
-    }
+    }}
     
-    /* Buttons - Premium Gradient */
-    .stButton>button {
+    /* Buttons */
+    .stButton>button {{
         background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
         color: white !important;
         border: none;
@@ -93,63 +130,52 @@ st.markdown("""
         letter-spacing: 0.5px;
         transition: all 0.3s ease;
         box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-    }
+    }}
     
-    .stButton>button:hover {
+    .stButton>button:hover {{
         opacity: 0.9;
         transform: translateY(-2px);
         box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
-    }
+    }}
     
-    /* Inputs - Dark & Clean */
-    .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {
-        background-color: rgba(30, 41, 59, 0.5);
-        color: white !important;
+    /* Inputs */
+    .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {{
+        background-color: {current_theme['input_bg']};
+        color: {current_theme['text_main']} !important;
         border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        transition: all 0.2s;
-    }
+        border: 1px solid {current_theme['border']};
+    }}
     
-    .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
-        border-color: #8b5cf6;
-        background-color: rgba(30, 41, 59, 0.8);
-        box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
-    }
+    /* Metrics Values */
+    div[data-testid="stMetricValue"] {{
+        color: {current_theme['metric_val']} !important;
+    }}
     
-    /* Hashtags - Neon Pills */
-    .hashtag-pill {
+    /* Hashtags */
+    .hashtag-pill {{
         background: rgba(37, 99, 235, 0.1);
-        color: #93c5fd;
+        color: #3b82f6;
         padding: 4px 12px;
         border-radius: 20px;
         font-size: 0.85rem;
         margin-right: 6px;
         display: inline-block;
         border: 1px solid rgba(59, 130, 246, 0.2);
-        transition: all 0.2s;
-    }
-    
-    .hashtag-pill:hover {
-        background: rgba(37, 99, 235, 0.2);
-        border-color: #60a5fa;
-        transform: scale(1.05);
-    }
+    }}
 
-    /* Mobile Preview - Premium Frame */
-    .mobile-preview-container {
+    /* Mobile Preview */
+    .mobile-preview-container {{
         border: 14px solid #0f172a;
         border-radius: 40px;
         overflow: hidden;
         max-width: 340px;
         margin: 0 auto;
-        background: white; /* Keep content light for realism */
+        background: white;
         position: relative;
-        box-shadow: 
-            0 0 0 2px #334155,
-            0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    }
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }}
     
-    .mobile-notch {
+    .mobile-notch {{
         position: absolute;
         top: 0;
         left: 50%;
@@ -160,12 +186,7 @@ st.markdown("""
         border-bottom-left-radius: 16px;
         border-bottom-right-radius: 16px;
         z-index: 10;
-    }
-    
-    /* Metrics Values */
-    div[data-testid="stMetricValue"] {
-        color: white !important;
-    }
+    }}
 
 </style>
 """, unsafe_allow_html=True)
@@ -221,8 +242,8 @@ if page == "🏠 Home":
         st.markdown(f"""
         <div class="post-card" style="text-align: center;">
             <div style="color: #2563eb; font-size: 0.9rem; margin-bottom: 0.5rem;">📝 Total de Posts</div>
-            <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['total_posts']}</div>
-            <div style="color: #666; font-size: 0.75rem;">posts criados</div>
+            <div style="font-size: 2rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['total_posts']}</div>
+            <div style="color: {current_theme['text_sec']}; font-size: 0.75rem;">posts criados</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -230,9 +251,9 @@ if page == "🏠 Home":
         st.markdown(f"""
         <div class="post-card" style="text-align: center;">
             <div style="color: #2563eb; font-size: 0.9rem; margin-bottom: 0.5rem;">📅 Neste Período</div>
-            <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['posts_in_period']}</div>
+            <div style="font-size: 2rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['posts_in_period']}</div>
             <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">{'+' if metrics['posts_change'] >= 0 else ''}{metrics['posts_change']}</div>
-            <div style="color: #666; font-size: 0.75rem;">vs período anterior</div>
+            <div style="color: {current_theme['text_sec']}; font-size: 0.75rem;">vs período anterior</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -240,8 +261,8 @@ if page == "🏠 Home":
         st.markdown(f"""
         <div class="post-card" style="text-align: center;">
             <div style="color: #2563eb; font-size: 0.9rem; margin-bottom: 0.5rem;">🔥 Sequência (Dias)</div>
-            <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['streak']}</div>
-            <div style="color: #666; font-size: 0.75rem;">dias consecutivos</div>
+            <div style="font-size: 2rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['streak']}</div>
+            <div style="color: {current_theme['text_sec']}; font-size: 0.75rem;">dias consecutivos</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -249,8 +270,8 @@ if page == "🏠 Home":
         st.markdown(f"""
         <div class="post-card" style="text-align: center;">
             <div style="color: #2563eb; font-size: 0.9rem; margin-bottom: 0.5rem;">📏 Média de Palavras</div>
-            <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['avg_words']}</div>
-            <div style="color: #666; font-size: 0.75rem;">palavras por post</div>
+            <div style="font-size: 2rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['avg_words']}</div>
+            <div style="color: {current_theme['text_sec']}; font-size: 0.75rem;">palavras por post</div>
         </div>
         """, unsafe_allow_html=True)
     
