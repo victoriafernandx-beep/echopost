@@ -3,6 +3,7 @@ import requests
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
+from rate_limiter import RateLimiter
 
 load_dotenv()
 
@@ -16,6 +17,9 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Configurar OpenAI
 client = OpenAI(api_key=OPENAI_API_KEY)
+
+# Rate limiter (5 messages per minute)
+rate_limiter = RateLimiter(max_messages=5, time_window=60)
 
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
@@ -71,10 +75,27 @@ def process_whatsapp_message(data):
         print(f"📱 Mensagem de: {from_number}")
         print(f"📝 Tipo: {message_type}")
         
+        # Check rate limit
+        allowed, remaining = rate_limiter.is_allowed(from_number)
+        if not allowed:
+            wait_time = rate_limiter.get_wait_time(from_number)
+            send_whatsapp_message(
+                from_number,
+                f"⏸️ Você atingiu o limite de mensagens.\\n\\nAguarde {wait_time} segundos antes de enviar outra mensagem."
+            )
+            return
+        
         # Processar baseado no tipo
         if message_type == 'text':
             text = message['text']['body']
             print(f"💬 Texto: {text}")
+            
+            # Check for commands
+            if text.startswith('/'):
+                response = handle_command(text)
+                send_whatsapp_message(from_number, response)
+                return
+            
             response = generate_post_from_text(text)
             send_whatsapp_message(from_number, response)
         
@@ -101,6 +122,78 @@ def process_whatsapp_message(data):
     except Exception as e:
         print(f"❌ Erro ao processar mensagem: {e}")
         raise
+
+def handle_command(command_text):
+    """Handle bot commands"""
+    command = command_text.lower().strip()
+    
+    if command == '/help' or command == '/ajuda':
+        return """🤖 *EchoPost Bot - Comandos Disponíveis*
+
+📝 *Como usar:*
+Envie uma mensagem ou áudio descrevendo o que você quer postar, e eu crio um post profissional para LinkedIn!
+
+⚡ *Comandos:*
+/help - Mostra esta mensagem
+/templates - Ver templates de posts
+/status - Status do bot
+
+💡 *Dicas:*
+• Seja específico sobre o tema
+• Mencione o tom desejado (profissional, casual, inspiracional)
+• Para áudios, fale claramente
+
+🎯 *Exemplos:*
+"Crie um post sobre IA no marketing"
+"Post inspiracional sobre liderança"
+"Dicas de produtividade para desenvolvedores"
+
+Criado por EchoPost 🚀"""
+    
+    elif command == '/templates':
+        return """📚 *Templates de Posts Disponíveis*
+
+1️⃣ *Dica Profissional*
+"Dica sobre [tema]: [sua dica]"
+
+2️⃣ *História Pessoal*
+"Conte uma história sobre [experiência]"
+
+3️⃣ *Opinião sobre Tendência*
+"Sua opinião sobre [tendência/notícia]"
+
+4️⃣ *Lista de Aprendizados*
+"5 lições que aprendi sobre [tema]"
+
+5️⃣ *Pergunta Engajadora*
+"Faça uma pergunta sobre [tema]"
+
+💡 *Como usar:*
+Escolha um template e me envie uma mensagem seguindo o formato!
+
+Exemplo: "Dica sobre produtividade: use a técnica Pomodoro"
+"""
+    
+    elif command == '/status':
+        return """✅ *EchoPost Bot - Status*
+
+🟢 Online e funcionando
+🤖 IA: OpenAI GPT-4o-mini
+🎤 Transcrição: Whisper
+⚡ Limite: 5 mensagens/minuto
+
+📊 *Recursos:*
+✓ Geração de posts
+✓ Transcrição de áudio
+✓ Múltiplos idiomas
+✓ Formatação profissional
+
+🔗 Powered by EchoPost"""
+    
+    else:
+        return f"""❓ Comando não reconhecido: {command_text}
+
+Digite /help para ver os comandos disponíveis."""
 
 def generate_post_from_text(text):
     """Gerar post profissional usando OpenAI"""
