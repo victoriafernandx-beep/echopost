@@ -617,32 +617,45 @@ elif page == "✨ Gerador de Posts":
                         st.session_state['last_post'] = f"{phrase}\n\n{st.session_state.get('last_post', '')}"
                         st.rerun()
     
-    # Input section with proper labels
-    st.markdown("""<div style='margin-bottom: 1rem;'>
-        <p style='color: {0}; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;'>💡 Sobre o que você quer escrever?</p>
-    </div>""".format(current_theme['text_sec']), unsafe_allow_html=True)
+    # Input section - using containers to isolate
+    input_container = st.container()
     
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        topic = st.text_input(
-            "topic_label",
-            value="",
-            placeholder="Ex: Inteligência Artificial no mercado de trabalho",
-            key="gen_topic",
-            label_visibility="collapsed"
-        )
-    
-    with col2:
-        st.markdown("""<div style='margin-bottom: 0.5rem;'>
-            <p style='color: {0}; font-size: 0.875rem; font-weight: 500;'>🎭 Tom do post</p>
-        </div>""".format(current_theme['text_sec']), unsafe_allow_html=True)
-        tone = st.selectbox(
-            "tone_label",
-            ["Profissional", "Casual", "Inspiracional"],
-            key="gen_tone",
-            label_visibility="collapsed"
-        )
+    with input_container:
+        # Custom label outside of input
+        st.markdown(f"""
+        <div style='margin-bottom: 0.75rem;'>
+            <label style='color: {current_theme['text_sec']}; font-size: 0.875rem; font-weight: 500; display: block; margin-bottom: 0.5rem;'>
+                💡 Sobre o que você quer escrever?
+            </label>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            topic = st.text_input(
+                "input_topic_hidden",
+                value="",
+                placeholder="Ex: Inteligência Artificial no mercado de trabalho",
+                key="topic_gen_v2",
+                label_visibility="hidden"
+            )
+        
+        with col2:
+            st.markdown(f"""
+            <div style='margin-bottom: 0.75rem;'>
+                <label style='color: {current_theme['text_sec']}; font-size: 0.875rem; font-weight: 500; display: block; margin-bottom: 0.5rem;'>
+                    🎭 Tom do post
+                </label>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            tone = st.selectbox(
+                "select_tone_hidden",
+                ["Profissional", "Casual", "Inspiracional"],
+                key="tone_gen_v2",
+                label_visibility="hidden"
+            )
     
     if st.button("🚀 Gerar Post", use_container_width=True):
         if topic:
