@@ -22,43 +22,17 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Theme Toggle
-if 'dark_mode' not in st.session_state:
-    st.session_state['dark_mode'] = True
-
-with st.sidebar:
-    col_theme, col_void = st.columns([2, 1])
-    with col_theme:
-        mode_label = "🌙 Modo Escuro" if st.session_state['dark_mode'] else "☀️ Modo Claro"
-        if st.button(mode_label, use_container_width=True):
-            st.session_state['dark_mode'] = not st.session_state['dark_mode']
-            st.rerun()
-
-# Dynamic CSS based on theme
-theme_colors = {
-    "dark": {
-        "bg_main": "#0a0e1a",
-        "bg_sidebar": "#111827",
-        "card_bg": "#1f2937",
-        "text_main": "#f9fafb",
-        "text_sec": "#9ca3af",
-        "border": "#374151",
-        "input_bg": "#111827",
-        "metric_val": "#f9fafb"
-    },
-    "light": {
-        "bg_main": "#ffffff",
-        "bg_sidebar": "#f8f9fa",
-        "card_bg": "#ffffff",
-        "text_main": "#1a1a1a",
-        "text_sec": "#6b7280",
-        "border": "#e5e7eb",
-        "input_bg": "#ffffff",
-        "metric_val": "#1a1a1a"
-    }
+# Theme colors - Light mode only
+current_theme = {
+    "bg_main": "#ffffff",
+    "bg_sidebar": "#f8f9fa",
+    "card_bg": "#ffffff",
+    "text_main": "#1a1a1a",
+    "text_sec": "#6b7280",
+    "border": "#e5e7eb",
+    "input_bg": "#ffffff",
+    "metric_val": "#1a1a1a"
 }
-
-current_theme = theme_colors["dark"] if st.session_state['dark_mode'] else theme_colors["light"]
 
 st.markdown(f"""
 <style>
