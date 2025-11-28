@@ -106,7 +106,8 @@ def generate_post_from_text(text):
     """Gerar post profissional usando Gemini"""
     
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # Tentar usar gemini-pro que é mais estável
+        model = genai.GenerativeModel('gemini-pro')
         
         prompt = f"""Você é um especialista em criar posts profissionais para LinkedIn.
 
@@ -140,6 +141,14 @@ Retorne APENAS o texto do post, sem explicações adicionais."""
     
     except Exception as e:
         print(f"❌ Erro ao gerar post: {e}")
+        try:
+            print("📋 Modelos disponíveis:")
+            for m in genai.list_models():
+                if 'generateContent' in m.supported_generation_methods:
+                    print(f"- {m.name}")
+        except Exception as list_error:
+            print(f"Erro ao listar modelos: {list_error}")
+            
         return f"❌ Desculpe, houve um erro ao gerar o post: {str(e)}"
 
 def transcribe_audio(audio_url):
