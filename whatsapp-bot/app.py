@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 import requests
 import os
-import google.generativeai as genai
+from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,10 +12,10 @@ app = Flask(__name__)
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "echopost_webhook_2024")
 WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN")
 PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Configurar Gemini
-genai.configure(api_key=GEMINI_API_KEY)
+# Configurar OpenAI
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
@@ -103,15 +103,14 @@ def process_whatsapp_message(data):
         raise
 
 def generate_post_from_text(text):
-    """Gerar post profissional usando Gemini"""
+    """Gerar post profissional usando OpenAI"""
     
     try:
-        # Usando o nome completo do modelo conforme a API
-        model = genai.GenerativeModel('models/gemini-1.5-flash')
-        
-        prompt = f"""Você é um especialista em criar posts profissionais para LinkedIn.
-
-Transforme o seguinte texto/ideia em um post envolvente e profissional:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "Você é um especialista em criar posts profissionais para LinkedIn."},
+                {"role": "user", "content": f"""Transforme o seguinte texto/ideia em um post envolvente e profissional:
 
 "{text}"
 
@@ -123,10 +122,13 @@ O post deve:
 - Ter entre 150-250 palavras
 - Terminar com uma pergunta ou call-to-action
 
-Retorne APENAS o texto do post, sem explicações adicionais."""
-
-        response = model.generate_content(prompt)
-        post = response.text.strip()
+Retorne APENAS o texto do post, sem explicações adicionais."""}
+            ],
+            temperature=0.7,
+            max_tokens=500
+        )
+        
+        post = response.choices[0].message.content.strip()
         
         # Adicionar cabeçalho
         final_message = f"""✨ *Post gerado com IA!*
@@ -141,18 +143,10 @@ Retorne APENAS o texto do post, sem explicações adicionais."""
     
     except Exception as e:
         print(f"❌ Erro ao gerar post: {e}")
-        try:
-            print("📋 Modelos disponíveis:")
-            for m in genai.list_models():
-                if 'generateContent' in m.supported_generation_methods:
-                    print(f"- {m.name}")
-        except Exception as list_error:
-            print(f"Erro ao listar modelos: {list_error}")
-            
         return f"❌ Desculpe, houve um erro ao gerar o post: {str(e)}"
 
 def transcribe_audio(audio_url):
-    """Transcrever áudio usando Gemini"""
+    """Transcrever áudio usando OpenAI Whisper"""
     
     try:
         # Baixar áudio
@@ -163,22 +157,18 @@ def transcribe_audio(audio_url):
         with open(temp_file, 'wb') as f:
             f.write(audio_data)
         
-        # Upload para Gemini
-        uploaded_file = genai.upload_file(temp_file)
-        
-        # Transcrever
-        model = genai.GenerativeModel('models/gemini-1.5-flash')
-        response = model.generate_content([
-            "Transcreva este áudio em português. Retorne APENAS a transcrição, sem comentários adicionais.",
-            uploaded_file
-        ])
-        
-        transcription = response.text.strip()
+        # Transcrever com Whisper
+        with open(temp_file, 'rb') as audio_file:
+            transcription = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file,
+                language="pt"
+            )
         
         # Limpar arquivo temporário
         os.remove(temp_file)
         
-        return transcription
+        return transcription.text.strip()
     
     except Exception as e:
         print(f"❌ Erro ao transcrever áudio: {e}")
