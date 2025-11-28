@@ -591,16 +591,14 @@ elif page == "✨ Gerador de Posts":
                         st.session_state['last_post'] = f"{phrase}\n\n{st.session_state.get('last_post', '')}"
                         st.rerun()
     
-    # Input section - using containers to isolate
-    input_container = st.container()
-    
-    with input_container:
-        # Custom label outside of input
+    # Using form to isolate inputs and prevent key display bug
+    with st.form(key="post_generator_form", clear_on_submit=False):
+        # Custom labels with HTML
         st.markdown(f"""
-        <div style='margin-bottom: 0.75rem;'>
-            <label style='color: {current_theme['text_sec']}; font-size: 0.875rem; font-weight: 500; display: block; margin-bottom: 0.5rem;'>
+        <div style='margin-bottom: 0.5rem;'>
+            <span style='color: {current_theme['text_sec']}; font-size: 0.875rem; font-weight: 500;'>
                 💡 Sobre o que você quer escrever?
-            </label>
+            </span>
         </div>
         """, unsafe_allow_html=True)
         
@@ -608,30 +606,32 @@ elif page == "✨ Gerador de Posts":
         
         with col1:
             topic = st.text_input(
-                "input_topic_hidden",
+                "topic",
                 value="",
                 placeholder="Ex: Inteligência Artificial no mercado de trabalho",
-                key="topic_gen_v2",
-                label_visibility="hidden"
+                label_visibility="collapsed"
             )
         
         with col2:
             st.markdown(f"""
-            <div style='margin-bottom: 0.75rem;'>
-                <label style='color: {current_theme['text_sec']}; font-size: 0.875rem; font-weight: 500; display: block; margin-bottom: 0.5rem;'>
+            <div style='margin-bottom: 0.5rem;'>
+                <span style='color: {current_theme['text_sec']}; font-size: 0.875rem; font-weight: 500;'>
                     🎭 Tom do post
-                </label>
+                </span>
             </div>
             """, unsafe_allow_html=True)
             
             tone = st.selectbox(
-                "select_tone_hidden",
+                "tone",
                 ["Profissional", "Casual", "Inspiracional"],
-                key="tone_gen_v2",
-                label_visibility="hidden"
+                label_visibility="collapsed"
             )
+        
+        # Submit button
+        submitted = st.form_submit_button("🚀 Gerar Post", use_container_width=True)
     
-    if st.button("🚀 Gerar Post", use_container_width=True):
+    # Process form submission
+    if submitted:
         if topic:
             with st.spinner("✨ Gerando seu post..."):
                 content = generator.generate_post(topic, tone)
