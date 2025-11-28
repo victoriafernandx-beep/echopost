@@ -1,7 +1,7 @@
 import streamlit as st
 
 def render_header():
-    st.title("EchoPost")
+    st.title("LinPost")
 
 def render_sidebar():
     st.sidebar.title("Menu")

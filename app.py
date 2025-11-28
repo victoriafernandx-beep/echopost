@@ -147,12 +147,6 @@ with st.sidebar:
 
 page = st.sidebar.radio("Navegação", ["🏠 Home", "✨ Gerador de Posts", "🎙️ Criar de Mídia", "📡 News Radar", "⚙️ Configurações"])
 
-# Dark mode toggle removed (Streamlit handles system theme better, or we keep it simple)
-# If user wants dark mode, Streamlit's native theme is best, but let's keep a simple toggle if needed or just rely on system.
-# User asked for "Black, Blue, Purple" - implying a dark theme preference or palette.
-# Let's force a dark theme look via CSS if we want, but for now let's stick to the clean CSS above.
-
-
 # Keyboard shortcuts hint
 st.sidebar.markdown("---")
 st.sidebar.markdown("### ⌨️ Atalhos")
@@ -169,7 +163,7 @@ if page == "🏠 Home":
     from src import analytics
     import plotly.graph_objects as go
     
-    st.markdown("## 👋 Bem-vindo ao EchoPost!")
+    st.markdown("## 👋 Bem-vindo ao LinPost!")
     
     # Period selector
     col_title, col_period = st.columns([3, 1])

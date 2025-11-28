@@ -39,7 +39,7 @@ def get_metrics(period_days=30):
     streak = random.randint(1, 5) if posts_in_period > 0 else 0
     
     # Calculate average words
-    total_words = sum([post.get('word_count', 0) for post in posts])
+    total_words = sum([(post.get('word_count') or 0) for post in posts])
     avg_words = int(total_words / total_posts) if total_posts > 0 else 0
     
     return {
