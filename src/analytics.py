@@ -1,139 +1,127 @@
 """
-Analytics module for EchoPost
-Provides metrics and analytics data with period filtering
+Analytics module for LinPost
+Provides metrics based on internal platform usage
 """
 import random
 from datetime import datetime, timedelta
+from src import database
 
 def get_metrics(period_days=30):
     """
-    Returns metrics for specified period
-    period_days: 7, 30, 90, or 365
+    Returns metrics based on internal database
     """
-    # Base metrics (would come from real data)
-    base_followers = 15230
-    base_impressions = 45000
-    base_engagement = 4.8
-    base_posts = 34
+    user_id = "test_user" # In real app, get from session
     
-    # Adjust based on period
-    period_multiplier = period_days / 30
+    # Get all posts
+    posts = database.get_posts(user_id)
     
-    # Calculate previous period for comparison
-    prev_followers = base_followers - random.randint(50, 200)
-    prev_impressions = int(base_impressions * 0.85)
-    prev_engagement = base_engagement - random.uniform(0.3, 0.8)
-    prev_posts = max(1, int(base_posts * 0.7))
+    total_posts = len(posts)
     
-    # Calculate changes
-    followers_change = base_followers - prev_followers
-    impressions_change = ((base_impressions - prev_impressions) / prev_impressions) * 100
-    engagement_change = ((base_engagement - prev_engagement) / prev_engagement) * 100
-    posts_change = base_posts - prev_posts
+    # Calculate posts in period
+    now = datetime.now()
+    period_start = now - timedelta(days=period_days)
+    
+    posts_in_period = 0
+    posts_prev_period = 0
+    prev_period_start = period_start - timedelta(days=period_days)
+    
+    for post in posts:
+        try:
+            created_at = datetime.fromisoformat(post['created_at'].replace('Z', '+00:00')).replace(tzinfo=None)
+            if created_at >= period_start:
+                posts_in_period += 1
+            elif created_at >= prev_period_start:
+                posts_prev_period += 1
+        except:
+            pass
+            
+    # Calculate streak (mock logic for now as we don't have daily data easily)
+    streak = random.randint(1, 5) if posts_in_period > 0 else 0
+    
+    # Calculate average words
+    total_words = sum([post.get('word_count', 0) for post in posts])
+    avg_words = int(total_words / total_posts) if total_posts > 0 else 0
     
     return {
-        "period_days": period_days,
-        "followers": base_followers,
-        "followers_change": f"+{followers_change}",
-        "followers_percent": f"+{(followers_change/prev_followers*100):.1f}%",
-        "impressions": int(base_impressions * period_multiplier),
-        "impressions_change": f"+{impressions_change:.1f}%",
-        "engagement": base_engagement,
-        "engagement_change": f"+{engagement_change:.1f}%",
-        "total_posts": base_posts,
-        "posts_change": f"+{posts_change}",
-        # Previous period data
-        "prev_followers": prev_followers,
-        "prev_impressions": prev_impressions,
-        "prev_engagement": prev_engagement,
-        "prev_posts": prev_posts
+        "total_posts": total_posts,
+        "posts_in_period": posts_in_period,
+        "posts_change": posts_in_period - posts_prev_period,
+        "streak": streak,
+        "avg_words": avg_words,
+        "period_days": period_days
     }
 
-def get_popular_posts():
-    """Returns mock data for popular posts table"""
-    posts = [
-        {"title": "A verdade sobre IA", "impressions": 15400, "comments": 145, "shares": 340, "engagement": "4.9%"},
-        {"title": "5 dicas de Vendas", "impressions": 12300, "comments": 88, "shares": 120, "engagement": "3.2%"},
-        {"title": "Minha História", "impressions": 8800, "comments": 230, "shares": 56, "engagement": "8.1%"},
-        {"title": "Erro Comum no MKT", "impressions": 4500, "comments": 45, "shares": 89, "engagement": "2.1%"},
-        {"title": "Futuro do Trabalho", "impressions": 2200, "comments": 32, "shares": 12, "engagement": "1.9%"}
-    ]
-    return posts
-
-def get_engagement_chart_data(period_days=30):
-    """Returns engagement data for specified period"""
+def get_posting_activity():
+    """Returns data for activity chart"""
+    # Mock activity data for the last 30 days
     dates = []
-    engagement = []
+    counts = []
     
-    for i in range(period_days, 0, -1):
+    for i in range(30, -1, -1):
         date = datetime.now() - timedelta(days=i)
         dates.append(date.strftime("%d/%m"))
-        engagement.append(round(random.uniform(3.5, 6.5), 1))
-    
-    return dates, engagement
+        # Random count 0-3
+        counts.append(random.choices([0, 1, 2, 3], weights=[0.6, 0.2, 0.1, 0.1])[0])
+        
+    return dates, counts
 
 def get_insights(metrics):
-    """Generate automatic insights based on metrics"""
+    """Generate insights based on usage"""
     insights = []
     
-    # Follower growth insight
-    if metrics['followers'] > metrics['prev_followers']:
-        growth = metrics['followers'] - metrics['prev_followers']
-        insights.append({
-            "icon": "📈",
-            "title": "Crescimento de Seguidores",
-            "description": f"Você ganhou {growth} novos seguidores neste período!",
-            "type": "positive"
-        })
-    
-    # Engagement insight
-    if metrics['engagement'] > metrics['prev_engagement']:
+    # Streak insight
+    if metrics['streak'] >= 3:
         insights.append({
             "icon": "🔥",
-            "title": "Engajamento em Alta",
-            "description": f"Sua taxa de engajamento aumentou {metrics['engagement_change']}!",
+            "title": "On Fire!",
+            "description": f"Você está há {metrics['streak']} dias criando conteúdo consecutivamente!",
             "type": "positive"
         })
     else:
         insights.append({
-            "icon": "💡",
-            "title": "Oportunidade de Melhoria",
-            "description": "Tente adicionar mais perguntas e CTAs nos posts.",
-            "type": "tip"
-        })
-    
-    # Post frequency insight
-    if metrics['total_posts'] > metrics['prev_posts']:
-        insights.append({
-            "icon": "✅",
+            "icon": "📅",
             "title": "Consistência",
-            "description": f"Você publicou {metrics['posts_change']} posts a mais que o período anterior!",
-            "type": "positive"
-        })
-    else:
-        insights.append({
-            "icon": "⏰",
-            "title": "Frequência de Posts",
-            "description": "Postar com mais frequência pode aumentar seu alcance.",
+            "description": "Tente criar pelo menos um post por dia para manter o ritmo.",
             "type": "tip"
         })
+        
+    # Volume insight
+    if metrics['posts_in_period'] > 5:
+        insights.append({
+            "icon": "🚀",
+            "title": "Alta Produtividade",
+            "description": "Você está criando bastante conteúdo! Continue assim.",
+            "type": "positive"
+        })
     
-    # Best time insight (mock)
-    insights.append({
-        "icon": "🕐",
-        "title": "Melhor Horário",
-        "description": "Seus posts têm mais engajamento entre 9h-11h e 18h-20h.",
-        "type": "info"
-    })
-    
+    # Word count insight
+    if metrics['avg_words'] < 100:
+        insights.append({
+            "icon": "📝",
+            "title": "Posts Curtos",
+            "description": "Seus posts são curtos. Tente aprofundar mais nos tópicos.",
+            "type": "info"
+        })
+    elif metrics['avg_words'] > 300:
+        insights.append({
+            "icon": "✂️",
+            "title": "Posts Longos",
+            "description": "Cuidado com textos muito longos. Tente ser mais conciso.",
+            "type": "tip"
+        })
+        
     return insights
 
-def get_post_performance_by_tag():
-    """Get performance metrics by tag"""
-    return {
-        "Vendas": {"posts": 12, "avg_engagement": 5.2, "total_impressions": 45000},
-        "Tech": {"posts": 8, "avg_engagement": 6.1, "total_impressions": 38000},
-        "Marketing": {"posts": 7, "avg_engagement": 4.8, "total_impressions": 28000},
-        "Carreira": {"posts": 5, "avg_engagement": 7.3, "total_impressions": 22000},
-        "Liderança": {"posts": 2, "avg_engagement": 4.1, "total_impressions": 8000}
-    }
+def get_top_topics(user_id="test_user"):
+    """Get most used topics"""
+    posts = database.get_posts(user_id)
+    topics = {}
+    
+    for post in posts:
+        topic = post.get('topic', 'Outros')
+        topics[topic] = topics.get(topic, 0) + 1
+        
+    # Sort by count
+    sorted_topics = sorted(topics.items(), key=lambda x: x[1], reverse=True)
+    return sorted_topics[:5]
+

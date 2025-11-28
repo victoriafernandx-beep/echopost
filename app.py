@@ -16,13 +16,13 @@ if "code" in st.query_params:
         st.error(f"❌ Erro ao conectar: {message}")
 
 st.set_page_config(
-    page_title="EchoPost",
-    page_icon="📢",
+    page_title="LinPost",
+    page_icon="assets/logo.jpg",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for modern, premium look
+# Custom CSS for LinPost (Minimalist Black/Blue/Purple)
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
@@ -31,207 +31,127 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
     
+    /* Main Background - Minimalist Light/Dark friendly */
     .main {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 2rem;
-        animation: fadeIn 0.5s ease-in;
+        background-color: #f8f9fa;
     }
     
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    @keyframes slideUp {
-        from { transform: translateY(20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
-    
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-    }
-    
-    .stApp {
-        background: transparent;
-    }
-    
-    /* Main title styling */
-    [data-testid="stHeader"] {
-        background: transparent;
-    }
+    /* Dark Mode overrides handled by Streamlit, but we define accents */
     
     h1, h2, h3, h4, h5, h6 {
-        color: #1a1a1a !important;
+        color: #1a1a1a;
         font-weight: 700;
-        text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
-        animation: slideUp 0.6s ease-out;
+        letter-spacing: -0.5px;
     }
-
     
+    /* Post Card */
     .post-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        border-radius: 16px;
+        background: white;
+        border-radius: 12px;
         padding: 1.5rem;
         margin-bottom: 1rem;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        animation: slideUp 0.4s ease-out;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease;
     }
     
     .post-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
-    }
-    
-    .post-meta {
-        color: #666;
-        font-size: 0.85rem;
-        margin-bottom: 0.5rem;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        border-color: #2563eb; /* Blue */
     }
     
     .post-topic {
-        color: #667eea;
+        color: #2563eb; /* Blue */
         font-weight: 600;
         font-size: 1.1rem;
         margin-bottom: 0.5rem;
     }
     
-    .post-content {
-        color: #333;
-        line-height: 1.6;
-        margin: 1rem 0;
-        padding: 1rem;
-        background: #f8f9fa;
-        border-radius: 8px;
-    }
-    
+    /* Buttons - Gradient Blue/Purple */
     .stButton>button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
         color: white;
         border: none;
         border-radius: 8px;
         padding: 0.5rem 2rem;
         font-weight: 600;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
     }
     
     .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        opacity: 0.9;
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
     
-    .stButton>button:active {
-        transform: translateY(0);
-    }
-    
+    /* Inputs */
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
         border-radius: 8px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        background: rgba(255, 255, 255, 0.9);
-        transition: all 0.3s ease;
+        border: 1px solid #e5e7eb;
     }
     
     .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
-        transform: scale(1.01);
+        border-color: #7c3aed; /* Purple */
+        box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
     }
     
-    .sidebar .sidebar-content {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
+    /* Hashtags - Minimalist */
+    .hashtag-pill {
+        background: #f3f4f6;
+        color: #4b5563;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        margin-right: 4px;
+        display: inline-block;
+        border: 1px solid #e5e7eb;
     }
-    
-    .char-counter {
-        text-align: right;
-        font-size: 0.85rem;
-        color: #666;
-        margin-top: 0.5rem;
-    }
-    
-    .char-counter.warning {
-        color: #ff6b6b;
-        font-weight: 600;
-        animation: pulse 2s infinite;
-    }
-    
-    /* Template card styling */
-    .template-card {
+
+    /* Mobile Preview Container */
+    .mobile-preview-container {
+        border: 12px solid #1a1a1a;
+        border-radius: 30px;
+        overflow: hidden;
+        max-width: 320px;
+        margin: 0 auto;
         background: white;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 0.5rem;
-        border: 2px solid #e0e0e0;
-        cursor: pointer;
-        transition: all 0.3s ease;
+        position: relative;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
     }
     
-    .template-card:hover {
-        border-color: #667eea;
-        transform: translateX(5px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    .mobile-notch {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 20px;
+        background: #1a1a1a;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+        z-index: 10;
     }
+
 </style>
 """, unsafe_allow_html=True)
 
-
-st.title("📢 EchoPost")
-st.markdown("### Sua plataforma de criação de conteúdo para LinkedIn com IA")
-
-st.sidebar.title("🧭 Navegação")
-page = st.sidebar.radio("Ir para", ["🏠 Home", "✨ Gerador de Posts", "📡 News Radar", "⚙️ Configurações"])
-
-# Dark mode toggle
-st.sidebar.markdown("---")
-if 'dark_mode' not in st.session_state:
-    st.session_state['dark_mode'] = False
-
-# Better dark mode toggle
-col_icon, col_toggle = st.sidebar.columns([1, 3])
-with col_icon:
-    if st.session_state['dark_mode']:
-        st.markdown("### 🌙")
-    else:
-        st.markdown("### ☀️")
-with col_toggle:
-    dark_mode = st.toggle("Modo Escuro" if not st.session_state['dark_mode'] else "Modo Claro", 
-                          value=st.session_state['dark_mode'], 
-                          key="theme_toggle")
+# Sidebar Branding
+with st.sidebar:
+    try:
+        st.image("assets/logo.jpg", width=150)
+    except:
+        st.title("LinPost")
     
-if dark_mode != st.session_state['dark_mode']:
-    st.session_state['dark_mode'] = dark_mode
-    st.rerun()
+    st.markdown("### Sua plataforma de conteúdo")
 
-# Apply dark mode CSS if enabled
-if st.session_state['dark_mode']:
-    st.markdown("""
-    <style>
-        .main {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
-        }
-        h1, h2, h3, h4, h5, h6 {
-            color: #ffffff !important;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        .post-card {
-            background: rgba(30, 30, 30, 0.95) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        }
-        .post-topic {
-            color: #8b9aff !important;
-        }
-        .post-content {
-            background: #2a2a2a !important;
-            color: #e0e0e0 !important;
-        }
-        .post-meta {
-            color: #aaa !important;
-        }
-    </style>
-    """, unsafe_allow_html=True)
+page = st.sidebar.radio("Navegação", ["🏠 Home", "✨ Gerador de Posts", "🎙️ Criar de Mídia", "📡 News Radar", "⚙️ Configurações"])
+
+# Dark mode toggle removed (Streamlit handles system theme better, or we keep it simple)
+# If user wants dark mode, Streamlit's native theme is best, but let's keep a simple toggle if needed or just rely on system.
+# User asked for "Black, Blue, Purple" - implying a dark theme preference or palette.
+# Let's force a dark theme look via CSS if we want, but for now let's stick to the clean CSS above.
+
 
 # Keyboard shortcuts hint
 st.sidebar.markdown("---")
@@ -272,19 +192,18 @@ if page == "🏠 Home":
     with col1:
         st.markdown(f"""
         <div class="post-card" style="text-align: center;">
-            <div style="color: #667eea; font-size: 0.9rem; margin-bottom: 0.5rem;">👥 Seguidores</div>
-            <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['followers']:,}</div>
-            <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">↑ {metrics['followers_change']} ({metrics['followers_percent']})</div>
-            <div style="color: #666; font-size: 0.75rem;">vs período anterior</div>
+            <div style="color: #2563eb; font-size: 0.9rem; margin-bottom: 0.5rem;">📝 Total de Posts</div>
+            <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['total_posts']}</div>
+            <div style="color: #666; font-size: 0.75rem;">posts criados</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
         st.markdown(f"""
         <div class="post-card" style="text-align: center;">
-            <div style="color: #667eea; font-size: 0.9rem; margin-bottom: 0.5rem;">👁️ Impressões</div>
-            <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['impressions']:,}</div>
-            <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">↑ {metrics['impressions_change']}</div>
+            <div style="color: #2563eb; font-size: 0.9rem; margin-bottom: 0.5rem;">📅 Neste Período</div>
+            <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['posts_in_period']}</div>
+            <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">{'+' if metrics['posts_change'] >= 0 else ''}{metrics['posts_change']}</div>
             <div style="color: #666; font-size: 0.75rem;">vs período anterior</div>
         </div>
         """, unsafe_allow_html=True)
@@ -292,20 +211,18 @@ if page == "🏠 Home":
     with col3:
         st.markdown(f"""
         <div class="post-card" style="text-align: center;">
-            <div style="color: #667eea; font-size: 0.9rem; margin-bottom: 0.5rem;">💬 Engajamento</div>
-            <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['engagement']}%</div>
-            <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">↑ {metrics['engagement_change']}</div>
-            <div style="color: #666; font-size: 0.75rem;">vs período anterior</div>
+            <div style="color: #2563eb; font-size: 0.9rem; margin-bottom: 0.5rem;">🔥 Sequência (Dias)</div>
+            <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['streak']}</div>
+            <div style="color: #666; font-size: 0.75rem;">dias consecutivos</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col4:
         st.markdown(f"""
         <div class="post-card" style="text-align: center;">
-            <div style="color: #667eea; font-size: 0.9rem; margin-bottom: 0.5rem;">📝 Posts</div>
-            <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['total_posts']}</div>
-            <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">↑ {metrics['posts_change']}</div>
-            <div style="color: #666; font-size: 0.75rem;">vs período anterior</div>
+            <div style="color: #2563eb; font-size: 0.9rem; margin-bottom: 0.5rem;">📏 Média de Palavras</div>
+            <div style="font-size: 2rem; font-weight: 700; color: #1a1a1a;">{metrics['avg_words']}</div>
+            <div style="color: #666; font-size: 0.75rem;">palavras por post</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -331,48 +248,43 @@ if page == "🏠 Home":
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Two columns: Popular Posts and Engagement Chart
-    col_left, col_right = st.columns([3, 2])
+    # Two columns: Top Topics and Activity Chart
+    col_left, col_right = st.columns([2, 3])
     
     with col_left:
-        st.markdown("### 📊 Publicações mais populares da semana")
+        st.markdown("### 🏷️ Tópicos Mais Usados")
         
-        popular_posts = analytics.get_popular_posts()
+        top_topics = analytics.get_top_topics()
         
-        # Convert to DataFrame for better display
-        import pandas as pd
-        df = pd.DataFrame(popular_posts)
-        df.columns = ['Post', 'Impressões', 'Comentários', 'Salvamentos', 'Taxa Eng.']
-        
-        # Style the dataframe
-        st.dataframe(
-            df,
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "Post": st.column_config.TextColumn("Post", width="medium"),
-                "Impressões": st.column_config.NumberColumn("Impressões", format="%d"),
-                "Comentários": st.column_config.NumberColumn("Comentários"),
-                "Salvamentos": st.column_config.NumberColumn("Salvamentos"),
-                "Taxa Eng.": st.column_config.TextColumn("Taxa Eng.")
-            }
-        )
+        if top_topics:
+            # Convert to DataFrame for better display
+            import pandas as pd
+            df = pd.DataFrame(top_topics, columns=['Tópico', 'Posts'])
+            
+            st.dataframe(
+                df,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Tópico": st.column_config.TextColumn("Tópico"),
+                    "Posts": st.column_config.ProgressColumn("Frequência", format="%d", min_value=0, max_value=max([t[1] for t in top_topics]))
+                }
+            )
+        else:
+            st.info("Crie posts para ver seus tópicos mais usados!")
 
     
     with col_right:
-        st.markdown("### 📈 Engajamento (30 dias)")
+        st.markdown("### 📈 Atividade de Postagem (30 dias)")
         
-        dates, engagement = analytics.get_engagement_chart_data()
+        dates, counts = analytics.get_posting_activity()
         
         fig = go.Figure()
-        fig.add_trace(go.Scatter(
+        fig.add_trace(go.Bar(
             x=dates,
-            y=engagement,
-            mode='lines+markers',
-            line=dict(color='#667eea', width=3),
-            marker=dict(size=6, color='#764ba2'),
-            fill='tozeroy',
-            fillcolor='rgba(102, 126, 234, 0.1)'
+            y=counts,
+            marker_color='#2563eb',
+            opacity=0.8
         ))
         
         fig.update_layout(
@@ -389,7 +301,7 @@ if page == "🏠 Home":
                 showgrid=True,
                 gridcolor='#f3f4f6',
                 showline=False,
-                title="Taxa (%)"
+                title="Posts"
             ),
             hovermode='x unified'
         )
@@ -577,7 +489,7 @@ elif page == "✨ Gerador de Posts":
                 st.session_state['last_post'] = content
                 st.session_state['last_topic'] = topic
                 st.success("✅ Post gerado com sucesso!")
-                st.balloons()
+                st.success("✅ Post gerado com sucesso!")
         else:
             st.warning("⚠️ Por favor, insira um tópico.")
     
@@ -621,9 +533,14 @@ elif page == "✨ Gerador de Posts":
             cols = st.columns(3)
             for idx, tag in enumerate(suggested_tags):
                 with cols[idx % 3]:
-                    if st.button(tag, key=f"tag_{idx}", use_container_width=True):
+                    # Using custom HTML for better styling, but buttons are limited in Streamlit
+                    # We'll stick to buttons but maybe we can inject CSS to make them look like pills?
+                    # Actually, let's just use the button but maybe add a class if possible?
+                    # Streamlit buttons are hard to style individually.
+                    # Let's just keep the button for functionality but maybe change the text?
+                    if st.button(f"#{tag}", key=f"tag_{idx}", use_container_width=True):
                         if tag not in content:
-                            st.session_state['last_post'] = content + " " + tag
+                            st.session_state['last_post'] = content + " #" + tag
                             st.rerun()
         
         with col_preview:
@@ -664,31 +581,90 @@ elif page == "✨ Gerador de Posts":
             
             # Mobile LinkedIn preview (iPhone style)
             st.markdown(f"""
-            <div style="max-width: 375px; margin: 0 auto; background: #000; border-radius: 40px; padding: 15px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-                <div style="background: #000; height: 30px; border-radius: 0 0 20px 20px; margin: -15px -15px 10px -15px;"></div>
-                <div style="background: white; border-radius: 8px; overflow: hidden; min-height: 500px;">
-                    <div style="padding: 12px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between;">
-                        <div style="color: #0a66c2; font-weight: bold; font-size: 18px;">in</div>
-                        <div style="color: #666; font-size: 12px;">Feed</div>
-                    </div>
-                    <div style="padding: 12px;">
-                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                            <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px; margin-right: 8px;">U</div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600; color: #000; font-size: 14px;">Seu Nome</div>
-                                <div style="font-size: 12px; color: #666;">Seu cargo</div>
-                                <div style="font-size: 11px; color: #666;">Agora • 🌐</div>
+            <div class="mobile-preview-container">
+                <div class="mobile-notch"></div>
+                <div style="background: white; min-height: 500px; padding-top: 20px;">
+                    <!-- Header -->
+                    <div style="padding: 12px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 32px; height: 32px; border-radius: 50%; background: #e5e7eb; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666;">
+                                👤
+                            </div>
+                            <div style="background: #eef3f8; padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
+                                <span style="color: #0a66c2; font-size: 14px;">🔍</span>
+                                <span style="color: #666; font-size: 12px;">Pesquisar</span>
                             </div>
                         </div>
-                        <div style="color: #000; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; font-size: 14px;">{content}</div>
-                        <div style="display: flex; justify-content: space-around; padding-top: 8px; margin-top: 12px; border-top: 1px solid #e0e0e0;">
-                            <div style="color: #666; font-size: 13px;">👍 Curtir</div>
-                            <div style="color: #666; font-size: 13px;">💬 Comentar</div>
-                            <div style="color: #666; font-size: 13px;">🔄 Compartilhar</div>
+                        <div style="color: #666;">💬</div>
+                    </div>
+                    
+                    <!-- Post -->
+                    <div style="padding: 12px;">
+                        <!-- User Info -->
+                        <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+                            <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px; margin-right: 10px; flex-shrink: 0;">
+                                {user_id[0].upper() if user_id else 'U'}
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #1a1a1a; font-size: 14px; line-height: 1.2;">
+                                    {st.session_state.get('linkedin_user', {}).get('name', 'Seu Nome')}
+                                </div>
+                                <div style="font-size: 12px; color: #666; line-height: 1.2; margin-top: 2px;">
+                                    {st.session_state.get('linkedin_user', {}).get('headline', 'Criador de Conteúdo | LinPost User')}
+                                </div>
+                                <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                    1 h • 🌐
+                                </div>
+                            </div>
+                            <div style="color: #666; font-weight: bold;">...</div>
+                        </div>
+                        
+                        <!-- Content -->
+                        <div style="color: #1a1a1a; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; font-size: 14px; margin-bottom: 12px;">
+                            {content}
+                        </div>
+                        
+                        <!-- Hashtags (Visual only, if not in content) -->
+                        <!-- 
+                        <div style="margin-bottom: 12px;">
+                            <span style="color: #2563eb; font-weight: 600; font-size: 14px;">#LinPost #Innovation</span>
+                        </div>
+                        -->
+                        
+                        <!-- Engagement Stats -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f3f4f6; padding-top: 8px; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <span style="font-size: 12px;">👍 👏 ❤️</span>
+                                <span style="font-size: 12px; color: #666;">84</span>
+                            </div>
+                            <div style="font-size: 12px; color: #666;">
+                                12 comentários • 4 compartilhamentos
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div style="display: flex; justify-content: space-between; border-top: 1px solid #f3f4f6; padding-top: 12px;">
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #666;">
+                                <span style="font-size: 16px;">👍</span>
+                                <span style="font-size: 12px; font-weight: 600;">Gostei</span>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #666;">
+                                <span style="font-size: 16px;">💬</span>
+                                <span style="font-size: 12px; font-weight: 600;">Comentar</span>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #666;">
+                                <span style="font-size: 16px;">🔄</span>
+                                <span style="font-size: 12px; font-weight: 600;">Repostar</span>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #666;">
+                                <span style="font-size: 16px;">📤</span>
+                                <span style="font-size: 12px; font-weight: 600;">Enviar</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div style="background: #fff; height: 5px; width: 134px; border-radius: 100px; margin: 10px auto 0;"></div>
+                <!-- Home Indicator -->
+                <div style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 120px; height: 4px; background: #1a1a1a; border-radius: 2px;"></div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -720,7 +696,7 @@ elif page == "✨ Gerador de Posts":
                 result = database.create_post(user_id, content, st.session_state['last_topic'], tags=post_tags)
                 if result:
                     st.success("✅ Post salvo com sucesso!")
-                    st.balloons()
+                    st.success("✅ Post gerado com sucesso!")
                 else:
                     st.error("❌ Erro ao salvar.")
 
@@ -732,7 +708,7 @@ elif page == "✨ Gerador de Posts":
                     success, message = linkedin.post_to_linkedin(content)
                     if success:
                         st.success(message)
-                        st.balloons()
+                        st.success("✅ Post gerado com sucesso!")
                     else:
                         st.error(message)
             else:
@@ -742,6 +718,83 @@ elif page == "✨ Gerador de Posts":
             if st.button("📋 Copiar para Clipboard", use_container_width=True):
                 st.code(content, language=None)
                 st.info("👆 Copie o texto acima!")
+
+
+elif page == "🎙️ Criar de Mídia":
+    st.markdown("## 🎙️ Criar de Mídia")
+    st.markdown("### Transforme imagens e áudios em posts incríveis")
+    
+    tab_img, tab_audio = st.tabs(["📸 Imagem", "🎤 Áudio"])
+    
+    with tab_img:
+        st.markdown("#### Gerar post a partir de Imagem")
+        uploaded_img = st.file_uploader("Faça upload de uma imagem", type=['png', 'jpg', 'jpeg'])
+        
+        if uploaded_img:
+            st.image(uploaded_img, caption="Imagem carregada", width=300)
+            img_topic = st.text_input("Sobre o que é essa imagem? (Opcional)", placeholder="Ex: Evento da empresa, Novo produto...")
+            
+            if st.button("✨ Gerar Post da Imagem", type="primary"):
+                with st.spinner("👀 Analisando imagem e gerando post..."):
+                    # Placeholder for vision API
+                    # In a real app, we'd use GPT-4 Vision or Gemini Vision
+                    # For now, we'll simulate or use a text prompt if we can't do vision
+                    st.info("🚧 A análise de imagem requer uma API de Visão (GPT-4V ou Gemini Pro Vision).")
+                    st.markdown("Simulando geração...")
+                    
+                    import time
+                    time.sleep(2)
+                    
+                    generated_content = f"""🚀 Que momento incrível!
+                    
+Acabei de registrar essa imagem que representa muito para mim: {img_topic if img_topic else 'uma conquista importante'}.
+
+Muitas vezes focamos apenas no resultado final, mas o processo é onde a mágica acontece. Essa foto me lembra que cada passo importa.
+
+💡 O que você tem celebrado ultimamente?
+
+#Conquista #Jornada #LinPost"""
+                    
+                    st.session_state['last_post'] = generated_content
+                    st.session_state['last_topic'] = img_topic or "Imagem"
+                    st.success("✅ Post gerado! Vá para 'Gerador de Posts' para editar.")
+    
+    with tab_audio:
+        st.markdown("#### Transcrever Áudio e Gerar Post")
+        uploaded_audio = st.file_uploader("Faça upload de um áudio", type=['mp3', 'wav', 'm4a', 'ogg'])
+        
+        if uploaded_audio:
+            st.audio(uploaded_audio)
+            
+            if st.button("📝 Transcrever e Gerar Post", type="primary"):
+                with st.spinner("👂 Ouvindo e transcrevendo..."):
+                    # Placeholder for Whisper
+                    # In real app: transcribe_audio(uploaded_audio)
+                    st.info("🚧 A transcrição requer a API Whisper configurada.")
+                    st.markdown("Simulando transcrição...")
+                    
+                    import time
+                    time.sleep(2)
+                    
+                    transcription = "Olá pessoal, hoje eu queria falar sobre a importância da consistência. Muita gente começa animada mas para no meio do caminho. O segredo é continuar mesmo quando não está motivado."
+                    
+                    st.markdown(f"**Transcrição:** _{transcription}_")
+                    st.markdown("---")
+                    
+                    with st.spinner("✨ Transformando em post..."):
+                        generated_content = f"""💎 A Chave é a Consistência!
+
+"{transcription}"
+
+Hoje refleti sobre isso. A motivação te faz começar, mas é o hábito que te faz continuar. Não espere ter vontade para fazer o que precisa ser feito.
+
+Você tem sido consistente nos seus projetos? 👇
+
+#Consistencia #Disciplina #LinPost"""
+                        
+                        st.session_state['last_post'] = generated_content
+                        st.session_state['last_topic'] = "Transcrição de Áudio"
+                        st.success("✅ Post gerado! Vá para 'Gerador de Posts' para editar.")
 
 
 elif page == "📡 News Radar":
@@ -849,7 +902,7 @@ O post deve:
                                 st.session_state['last_post'] = content
                                 st.session_state['last_topic'] = article['title']
                                 st.success("✅ Post gerado! Vá para 'Gerador de Posts' para editar e publicar.")
-                                st.balloons()
+                                st.success("✅ Post gerado com sucesso!")
                 
                 st.markdown("---")
         
