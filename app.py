@@ -425,43 +425,47 @@ if page == "🏠 Home":
             </div>
             """, unsafe_allow_html=True)
             
-            col1, col2, col3, col4 = st.columns([1, 1, 2, 2])
-            with col1:
-                if st.button("🗑️ Deletar", key=f"del_{idx}"):
+            # Action Buttons Row
+            col_actions = st.columns([1, 1, 1, 3])
+            
+            with col_actions[0]:
+                if st.button("🗑️", key=f"del_{idx}", help="Deletar Post"):
                     database.delete_post(post_id)
                     st.rerun()
-            with col2:
-                if st.button(f"{'⭐' if not is_favorite else '☆'} Favorito", key=f"fav_{idx}"):
+            
+            with col_actions[1]:
+                fav_label = "⭐" if is_favorite else "☆"
+                if st.button(fav_label, key=f"fav_{idx}", help="Favoritar"):
                     database.toggle_favorite(post_id, not is_favorite)
                     st.rerun()
-            with col3:
-                # Tag editor
-                new_tags = st.multiselect(
-                    "Tags",
-                    options=all_tags + ["+ Nova tag"],
-                    default=post_tags,
-                    key=f"tags_{idx}",
-                    label_visibility="collapsed"
-                )
-                
-                # Handle new tag creation
-                if "+ Nova tag" in new_tags:
-                    new_tags.remove("+ Nova tag")
-                    new_tag = st.text_input("Nova tag:", key=f"new_tag_{idx}", placeholder="Digite a nova tag")
-                    if new_tag and st.button("Adicionar", key=f"add_tag_{idx}"):
-                        new_tags.append(new_tag)
-                        database.update_post_tags(post_id, new_tags)
-                        st.rerun()
-                elif new_tags != post_tags:
-                    if st.button("💾 Salvar tags", key=f"save_tags_{idx}"):
-                        database.update_post_tags(post_id, new_tags)
-                        st.success("Tags atualizadas!")
-                        st.rerun()
             
-            with col4:
-                if st.button("📋 Copiar", key=f"copy_{idx}"):
+            with col_actions[2]:
+                if st.button("📋", key=f"copy_{idx}", help="Copiar Conteúdo"):
                     st.code(content, language=None)
-                    st.success("Conteúdo exibido acima para copiar!")
+                    st.toast("Conteúdo copiado para a área de transferência!", icon="📋")
+
+            with col_actions[3]:
+                # Tag management in a cleaner way
+                with st.popover("🏷️ Gerenciar Tags"):
+                    current_tags = st.multiselect(
+                        "Tags do post",
+                        options=all_tags + ["+ Nova tag"],
+                        default=post_tags,
+                        key=f"tags_{idx}"
+                    )
+                    
+                    if "+ Nova tag" in current_tags:
+                        new_tag = st.text_input("Nome da nova tag", key=f"new_tag_{idx}")
+                        if new_tag and st.button("Criar Tag", key=f"add_tag_{idx}"):
+                            current_tags.remove("+ Nova tag")
+                            current_tags.append(new_tag)
+                            database.update_post_tags(post_id, current_tags)
+                            st.rerun()
+                    
+                    if set(current_tags) != set(post_tags) and "+ Nova tag" not in current_tags:
+                        if st.button("Salvar Alterações", key=f"save_tags_{idx}"):
+                            database.update_post_tags(post_id, current_tags)
+                            st.rerun()
     else:
         if search_query or selected_tags or show_favorites:
             st.info("🔍 Nenhum post encontrado com esses filtros.")
