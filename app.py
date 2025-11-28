@@ -47,12 +47,12 @@ theme_colors = {
         "metric_val": "white"
     },
     "light": {
-        "bg_main": "#f1f5f9", # Darker gray for background
+        "bg_main": "#f8fafc", # Slate-50
         "bg_sidebar": "#ffffff",
         "card_bg": "#ffffff",
-        "text_main": "#0f172a", # Darker text
-        "text_sec": "#475569",
-        "border": "#cbd5e1", # Darker border
+        "text_main": "#1e293b", # Slate-800
+        "text_sec": "#64748b", # Slate-500
+        "border": "#e2e8f0", # Slate-200
         "input_bg": "#ffffff",
         "metric_val": "#0f172a"
     }
@@ -71,9 +71,6 @@ st.markdown(f"""
     /* Main Background */
     .stApp {{
         background-color: {current_theme['bg_main']};
-        {f'''background-image: 
-            radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.15) 0px, transparent 50%),
-            radial-gradient(at 100% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%);''' if st.session_state['dark_mode'] else ''}
     }}
     
     /* Sidebar */
@@ -87,18 +84,65 @@ st.markdown(f"""
         color: {current_theme['text_main']} !important;
         letter-spacing: -0.5px;
     }}
+    
+    p, label, .stMarkdown, div[data-testid="stMarkdownContainer"] > p {{
+        color: {current_theme['text_sec']} !important;
+    }}
+
+    /* Cards */
+    .post-card {{
+        background: {current_theme['card_bg']};
+        border: 1px solid {current_theme['border']};
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }}
+    
+    .metric-card {{
+        min-height: 160px; /* Slightly smaller for better proportion */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }}
+    
+    .post-card:hover {{
+        border-color: #3b82f6;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transform: translateY(-2px);
+    }}
+    
     .post-topic {{
-        background: linear-gradient(to right, #2563eb, #7c3aed);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+        color: #2563eb;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }}
+    
+    /* Buttons */
+    .stButton>button {{
+        background: #2563eb;
+        color: white !important;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }}
+    
+    .stButton>button:hover {{
+        background: #1d4ed8;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
     }}
     
     /* Inputs */
     .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {{
         background-color: {current_theme['input_bg']};
         color: {current_theme['text_main']} !important;
-        border-radius: 12px;
+        border-radius: 8px;
         border: 1px solid {current_theme['border']};
     }}
     
@@ -109,26 +153,26 @@ st.markdown(f"""
     
     /* Hashtags */
     .hashtag-pill {{
-        background: rgba(37, 99, 235, 0.1);
-        color: #3b82f6;
+        background: rgba(37, 99, 235, 0.05);
+        color: #2563eb;
         padding: 4px 12px;
-        border-radius: 20px;
+        border-radius: 16px;
         font-size: 0.85rem;
         margin-right: 6px;
         display: inline-block;
-        border: 1px solid rgba(59, 130, 246, 0.2);
+        border: 1px solid rgba(37, 99, 235, 0.1);
     }}
 
     /* Mobile Preview */
     .mobile-preview-container {{
-        border: 14px solid #0f172a;
-        border-radius: 40px;
+        border: 12px solid #1e293b;
+        border-radius: 32px;
         overflow: hidden;
-        max-width: 340px;
+        max-width: 320px;
         margin: 0 auto;
         background: white;
         position: relative;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }}
     
     .mobile-notch {{
@@ -136,11 +180,11 @@ st.markdown(f"""
         top: 0;
         left: 50%;
         transform: translateX(-50%);
-        width: 120px;
-        height: 24px;
-        background: #0f172a;
-        border-bottom-left-radius: 16px;
-        border-bottom-right-radius: 16px;
+        width: 100px;
+        height: 20px;
+        background: #1e293b;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
         z-index: 10;
     }}
 
@@ -197,8 +241,8 @@ if page == "🏠 Home":
     with col1:
         st.markdown(f"""
         <div class="post-card metric-card">
-            <div style="color: #2563eb; font-size: 0.9rem; margin-bottom: 0.5rem;">📝 Total de Posts</div>
-            <div style="font-size: 2rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['total_posts']}</div>
+            <div style="color: #64748b; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">📝 Total de Posts</div>
+            <div style="font-size: 2.25rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['total_posts']}</div>
             <div style="color: {current_theme['text_sec']}; font-size: 0.75rem;">posts criados</div>
         </div>
         """, unsafe_allow_html=True)
@@ -206,18 +250,17 @@ if page == "🏠 Home":
     with col2:
         st.markdown(f"""
         <div class="post-card metric-card">
-            <div style="color: #2563eb; font-size: 0.9rem; margin-bottom: 0.5rem;">📅 Neste Período</div>
-            <div style="font-size: 2rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['posts_in_period']}</div>
-            <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">{'+' if metrics['posts_change'] >= 0 else ''}{metrics['posts_change']}</div>
-            <div style="color: {current_theme['text_sec']}; font-size: 0.75rem;">vs período anterior</div>
+            <div style="color: #64748b; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">📅 Neste Período</div>
+            <div style="font-size: 2.25rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['posts_in_period']}</div>
+            <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.25rem; font-weight: 600;">{'+' if metrics['posts_change'] >= 0 else ''}{metrics['posts_change']} <span style="font-weight: 400; color: {current_theme['text_sec']};">vs anterior</span></div>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
         st.markdown(f"""
         <div class="post-card metric-card">
-            <div style="color: #2563eb; font-size: 0.9rem; margin-bottom: 0.5rem;">🔥 Sequência (Dias)</div>
-            <div style="font-size: 2rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['streak']}</div>
+            <div style="color: #64748b; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">🔥 Sequência</div>
+            <div style="font-size: 2.25rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['streak']}</div>
             <div style="color: {current_theme['text_sec']}; font-size: 0.75rem;">dias consecutivos</div>
         </div>
         """, unsafe_allow_html=True)
@@ -225,9 +268,9 @@ if page == "🏠 Home":
     with col4:
         st.markdown(f"""
         <div class="post-card metric-card">
-            <div style="color: #2563eb; font-size: 0.9rem; margin-bottom: 0.5rem;">📏 Média de Palavras</div>
-            <div style="font-size: 2rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['avg_words']}</div>
-            <div style="color: {current_theme['text_sec']}; font-size: 0.75rem;">palavras por post</div>
+            <div style="color: #64748b; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">📏 Média Palavras</div>
+            <div style="font-size: 2.25rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['avg_words']}</div>
+            <div style="color: {current_theme['text_sec']}; font-size: 0.75rem;">por post</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -240,14 +283,16 @@ if page == "🏠 Home":
     cols_insights = st.columns(len(insights))
     for idx, insight in enumerate(insights):
         with cols_insights[idx]:
-            bg_color = "#d1fae5" if insight['type'] == "positive" else "#fef3c7" if insight['type'] == "tip" else "#dbeafe"
-            text_color = "#065f46" if insight['type'] == "positive" else "#92400e" if insight['type'] == "tip" else "#1e40af"
+            # Professional styling: White card with colored left border
+            border_color = "#10b981" if insight['type'] == "positive" else "#f59e0b" if insight['type'] == "tip" else "#3b82f6"
             
             st.markdown(f"""
-            <div style="background: {bg_color}; padding: 1rem; border-radius: 8px; height: 100%;">
-                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">{insight['icon']}</div>
-                <div style="font-weight: 600; color: {text_color}; margin-bottom: 0.25rem;">{insight['title']}</div>
-                <div style="font-size: 0.85rem; color: {text_color};">{insight['description']}</div>
+            <div class="post-card" style="border-left: 4px solid {border_color}; padding: 1.25rem; height: 100%;">
+                <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
+                    <span style="font-size: 1.25rem; margin-right: 0.5rem;">{insight['icon']}</span>
+                    <span style="font-weight: 600; color: {current_theme['text_main']};">{insight['title']}</span>
+                </div>
+                <div style="font-size: 0.9rem; color: {current_theme['text_sec']}; line-height: 1.5;">{insight['description']}</div>
             </div>
             """, unsafe_allow_html=True)
     
