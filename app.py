@@ -47,14 +47,14 @@ theme_colors = {
         "metric_val": "white"
     },
     "light": {
-        "bg_main": "#f8fafc", # Slate-50
-        "bg_sidebar": "#ffffff",
+        "bg_main": "#ffffff",
+        "bg_sidebar": "#f8f9fa",
         "card_bg": "#ffffff",
-        "text_main": "#1e293b", # Slate-800
-        "text_sec": "#64748b", # Slate-500
-        "border": "#e2e8f0", # Slate-200
+        "text_main": "#1a1a1a",
+        "text_sec": "#6b7280",
+        "border": "#e5e7eb",
         "input_bg": "#ffffff",
-        "metric_val": "#0f172a"
+        "metric_val": "#1a1a1a"
     }
 }
 
@@ -62,10 +62,10 @@ current_theme = theme_colors["dark"] if st.session_state['dark_mode'] else theme
 
 st.markdown(f"""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
     * {{
-        font-family: 'Outfit', sans-serif !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }}
     
     /* Main Background */
@@ -80,28 +80,44 @@ st.markdown(f"""
     }}
     
     /* Typography */
-    h1, h2, h3, h4, h5, h6 {{
+    h1 {{
         color: {current_theme['text_main']} !important;
-        letter-spacing: -0.5px;
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.025em !important;
+    }}
+    
+    h2 {{
+        color: {current_theme['text_main']} !important;
+        font-size: 1.5rem !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.025em !important;
+    }}
+    
+    h3 {{
+        color: {current_theme['text_main']} !important;
+        font-size: 1.125rem !important;
+        font-weight: 600 !important;
     }}
     
     p, label, .stMarkdown, div[data-testid="stMarkdownContainer"] > p {{
         color: {current_theme['text_sec']} !important;
+        font-size: 0.875rem !important;
     }}
 
     /* Cards */
     .post-card {{
         background: {current_theme['card_bg']};
         border: 1px solid {current_theme['border']};
-        border-radius: 12px;
-        padding: 1.5rem;
+        border-radius: 8px;
+        padding: 1.25rem;
         margin-bottom: 1rem;
         transition: all 0.2s ease;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }}
     
     .metric-card {{
-        min-height: 160px; /* Slightly smaller for better proportion */
+        min-height: 140px;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -111,14 +127,14 @@ st.markdown(f"""
     
     .post-card:hover {{
         border-color: #3b82f6;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
     }}
     
     .post-topic {{
         color: #2563eb;
         font-weight: 600;
-        font-size: 1.1rem;
+        font-size: 1rem;
         margin-bottom: 0.5rem;
     }}
     
@@ -127,9 +143,10 @@ st.markdown(f"""
         background: #2563eb;
         color: white !important;
         border: none;
-        border-radius: 8px;
-        padding: 0.5rem 1.5rem;
+        border-radius: 6px;
+        padding: 0.5rem 1.25rem;
         font-weight: 500;
+        font-size: 0.875rem !important;
         transition: all 0.2s;
     }}
     
@@ -142,37 +159,46 @@ st.markdown(f"""
     .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {{
         background-color: {current_theme['input_bg']};
         color: {current_theme['text_main']} !important;
-        border-radius: 8px;
+        border-radius: 6px;
         border: 1px solid {current_theme['border']};
+        font-size: 0.875rem !important;
     }}
     
     /* Metrics Values */
     div[data-testid="stMetricValue"] {{
         color: {current_theme['metric_val']} !important;
+        font-size: 1.875rem !important;
+        font-weight: 700 !important;
+    }}
+    
+    div[data-testid="stMetricLabel"] {{
+        font-size: 0.75rem !important;
+        color: {current_theme['text_sec']} !important;
+        font-weight: 500 !important;
     }}
     
     /* Hashtags */
     .hashtag-pill {{
         background: rgba(37, 99, 235, 0.05);
         color: #2563eb;
-        padding: 4px 12px;
-        border-radius: 16px;
-        font-size: 0.85rem;
-        margin-right: 6px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        margin-right: 4px;
         display: inline-block;
         border: 1px solid rgba(37, 99, 235, 0.1);
     }}
 
     /* Mobile Preview */
     .mobile-preview-container {{
-        border: 12px solid #1e293b;
-        border-radius: 32px;
+        border: 10px solid #1e293b;
+        border-radius: 28px;
         overflow: hidden;
-        max-width: 320px;
+        max-width: 300px;
         margin: 0 auto;
         background: white;
         position: relative;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }}
     
     .mobile-notch {{
@@ -180,11 +206,11 @@ st.markdown(f"""
         top: 0;
         left: 50%;
         transform: translateX(-50%);
-        width: 100px;
-        height: 20px;
+        width: 90px;
+        height: 18px;
         background: #1e293b;
-        border-bottom-left-radius: 12px;
-        border-bottom-right-radius: 12px;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
         z-index: 10;
     }}
 
@@ -218,7 +244,7 @@ if page == "🏠 Home":
     from src import analytics
     import plotly.graph_objects as go
     
-    st.markdown("## 👋 Bem-vindo ao LinPost!")
+    st.markdown("## 👋 Bem-vindo ao LinPost")
     
     # Period selector
     col_title, col_period = st.columns([3, 1])
@@ -241,36 +267,36 @@ if page == "🏠 Home":
     with col1:
         st.markdown(f"""
         <div class="post-card metric-card">
-            <div style="color: #64748b; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">📝 Total de Posts</div>
-            <div style="font-size: 2.25rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['total_posts']}</div>
-            <div style="color: {current_theme['text_sec']}; font-size: 0.75rem;">posts criados</div>
+            <div style="color: #6b7280; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">📝 Total de Posts</div>
+            <div style="font-size: 1.875rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['total_posts']}</div>
+            <div style="color: {current_theme['text_sec']}; font-size: 0.75rem; margin-top: 0.25rem;">posts criados</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
         st.markdown(f"""
         <div class="post-card metric-card">
-            <div style="color: #64748b; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">📅 Neste Período</div>
-            <div style="font-size: 2.25rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['posts_in_period']}</div>
-            <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.25rem; font-weight: 600;">{'+' if metrics['posts_change'] >= 0 else ''}{metrics['posts_change']} <span style="font-weight: 400; color: {current_theme['text_sec']};">vs anterior</span></div>
+            <div style="color: #6b7280; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">📅 Período</div>
+            <div style="font-size: 1.875rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['posts_in_period']}</div>
+            <div style="color: #10b981; font-size: 0.75rem; margin-top: 0.25rem; font-weight: 600;">{'+' if metrics['posts_change'] >= 0 else ''}{metrics['posts_change']} <span style="font-weight: 400; color: {current_theme['text_sec']};">vs anterior</span></div>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
         st.markdown(f"""
         <div class="post-card metric-card">
-            <div style="color: #64748b; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">🔥 Sequência</div>
-            <div style="font-size: 2.25rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['streak']}</div>
-            <div style="color: {current_theme['text_sec']}; font-size: 0.75rem;">dias consecutivos</div>
+            <div style="color: #6b7280; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">🔥 Sequência</div>
+            <div style="font-size: 1.875rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['streak']}</div>
+            <div style="color: {current_theme['text_sec']}; font-size: 0.75rem; margin-top: 0.25rem;">dias consecutivos</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col4:
         st.markdown(f"""
         <div class="post-card metric-card">
-            <div style="color: #64748b; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">📏 Média Palavras</div>
-            <div style="font-size: 2.25rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['avg_words']}</div>
-            <div style="color: {current_theme['text_sec']}; font-size: 0.75rem;">por post</div>
+            <div style="color: #6b7280; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">📏 Média</div>
+            <div style="font-size: 1.875rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['avg_words']}</div>
+            <div style="color: {current_theme['text_sec']}; font-size: 0.75rem; margin-top: 0.25rem;">palavras/post</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -447,10 +473,13 @@ if page == "🏠 Home":
             with col_actions[3]:
                 # Tag management in a cleaner way
                 with st.popover("🏷️ Gerenciar Tags"):
+                    # Ensure post_tags is always a list
+                    safe_post_tags = post_tags if post_tags is not None else []
+                    
                     current_tags = st.multiselect(
                         "Tags do post",
                         options=all_tags + ["+ Nova tag"],
-                        default=post_tags,
+                        default=safe_post_tags,
                         key=f"tags_{idx}"
                     )
                     
@@ -462,7 +491,8 @@ if page == "🏠 Home":
                             database.update_post_tags(post_id, current_tags)
                             st.rerun()
                     
-                    if set(current_tags) != set(post_tags) and "+ Nova tag" not in current_tags:
+                    # Safe comparison
+                    if set(current_tags) != set(safe_post_tags) and "+ Nova tag" not in current_tags:
                         if st.button("Salvar Alterações", key=f"save_tags_{idx}"):
                             database.update_post_tags(post_id, current_tags)
                             st.rerun()
