@@ -106,8 +106,8 @@ def generate_post_from_text(text):
     """Gerar post profissional usando Gemini"""
     
     try:
-        # Tentar usar gemini-pro que é mais estável
-        model = genai.GenerativeModel('gemini-pro')
+        # Usando gemini-1.5-flash
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
         prompt = f"""Você é um especialista em criar posts profissionais para LinkedIn.
 
