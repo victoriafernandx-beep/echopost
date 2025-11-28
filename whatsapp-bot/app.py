@@ -106,8 +106,8 @@ def generate_post_from_text(text):
     """Gerar post profissional usando Gemini"""
     
     try:
-        # Usando gemini-1.5-flash
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # Usando o nome completo do modelo conforme a API
+        model = genai.GenerativeModel('models/gemini-1.5-flash')
         
         prompt = f"""Você é um especialista em criar posts profissionais para LinkedIn.
 
@@ -167,7 +167,7 @@ def transcribe_audio(audio_url):
         uploaded_file = genai.upload_file(temp_file)
         
         # Transcrever
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('models/gemini-1.5-flash')
         response = model.generate_content([
             "Transcreva este áudio em português. Retorne APENAS a transcrição, sem comentários adicionais.",
             uploaded_file
