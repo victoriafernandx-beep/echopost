@@ -207,6 +207,23 @@ st.markdown(f"""
         z-index: 1 !important;
     }}
     
+    /* Aggressive hiding of any text that looks like a key */
+    div[class*="st-key"] {{
+        display: none !important;
+    }}
+    
+    /* Hide any div containing "key" text pattern */
+    .stTextInput > div > div > div:not([data-baseweb]) {{
+        display: none !important;
+    }}
+    
+    /* Force hide elements with key-like content */
+    .stTextInput [class*="StyledWidgetLabel"] ~ div > div:first-child {{
+        visibility: hidden !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }}
+    
     /* Metrics Values */
     div[data-testid="stMetricValue"] {{
         color: {current_theme['metric_val']} !important;
