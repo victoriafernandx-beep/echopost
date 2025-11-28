@@ -187,6 +187,26 @@ st.markdown(f"""
         margin-bottom: 0.25rem !important;
     }}
     
+    /* Hide widget keys that appear in inputs */
+    [data-testid="stText"] {{
+        display: none !important;
+    }}
+    
+    /* Fix for key text appearing in inputs - more specific */
+    .stTextInput div[data-baseweb="input"] > div:first-child {{
+        display: none !important;
+    }}
+    
+    .stTextArea div[data-baseweb="textarea"] > div:first-child {{
+        display: none !important;
+    }}
+    
+    /* Ensure input text is visible and not overlapped */
+    input[type="text"], textarea {{
+        position: relative !important;
+        z-index: 1 !important;
+    }}
+    
     /* Metrics Values */
     div[data-testid="stMetricValue"] {{
         color: {current_theme['metric_val']} !important;
@@ -595,7 +615,6 @@ elif page == "✨ Gerador de Posts":
                 content = generator.generate_post(topic, tone)
                 st.session_state['last_post'] = content
                 st.session_state['last_topic'] = topic
-                st.success("✅ Post gerado com sucesso!")
                 st.success("✅ Post gerado com sucesso!")
         else:
             st.warning("⚠️ Por favor, insira um tópico.")
