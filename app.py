@@ -604,10 +604,18 @@ elif page == "✨ Gerador de Posts":
 
     
     with col1:
-        topic = st.text_input("💡 Sobre o que você quer escrever?", placeholder="Ex: Inteligência Artificial no mercado de trabalho")
+        topic = st.text_input(
+            "💡 Sobre o que você quer escrever?", 
+            placeholder="Ex: Inteligência Artificial no mercado de trabalho",
+            key="post_topic_input"
+        )
     
     with col2:
-        tone = st.selectbox("🎭 Tom do post", ["Profissional", "Casual", "Inspiracional"])
+        tone = st.selectbox(
+            "🎭 Tom do post", 
+            ["Profissional", "Casual", "Inspiracional"],
+            key="post_tone_select"
+        )
     
     if st.button("🚀 Gerar Post", use_container_width=True):
         if topic:
