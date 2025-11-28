@@ -37,14 +37,14 @@ with st.sidebar:
 # Dynamic CSS based on theme
 theme_colors = {
     "dark": {
-        "bg_main": "#0f172a",
-        "bg_sidebar": "rgba(15, 23, 42, 0.98)",
-        "card_bg": "rgba(30, 41, 59, 0.7)",
-        "text_main": "#f8fafc",
-        "text_sec": "#cbd5e1",
-        "border": "rgba(255, 255, 255, 0.08)",
-        "input_bg": "rgba(30, 41, 59, 0.5)",
-        "metric_val": "white"
+        "bg_main": "#0a0e1a",
+        "bg_sidebar": "#111827",
+        "card_bg": "#1f2937",
+        "text_main": "#f9fafb",
+        "text_sec": "#9ca3af",
+        "border": "#374151",
+        "input_bg": "#111827",
+        "metric_val": "#f9fafb"
     },
     "light": {
         "bg_main": "#ffffff",
@@ -617,24 +617,30 @@ elif page == "✨ Gerador de Posts":
                         st.session_state['last_post'] = f"{phrase}\n\n{st.session_state.get('last_post', '')}"
                         st.rerun()
     
+    # Input section with proper labels
+    st.markdown("""<div style='margin-bottom: 1rem;'>
+        <p style='color: {0}; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;'>💡 Sobre o que você quer escrever?</p>
+    </div>""".format(current_theme['text_sec']), unsafe_allow_html=True)
+    
     col1, col2 = st.columns([2, 1])
-
     
     with col1:
-        st.markdown("💡 **Sobre o que você quer escrever?**")
         topic = st.text_input(
-            "Sobre o que você quer escrever?", 
+            "topic_label",
+            value="",
             placeholder="Ex: Inteligência Artificial no mercado de trabalho",
-            key="post_topic_input",
+            key="gen_topic",
             label_visibility="collapsed"
         )
     
     with col2:
-        st.markdown("🎭 **Tom do post**")
+        st.markdown("""<div style='margin-bottom: 0.5rem;'>
+            <p style='color: {0}; font-size: 0.875rem; font-weight: 500;'>🎭 Tom do post</p>
+        </div>""".format(current_theme['text_sec']), unsafe_allow_html=True)
         tone = st.selectbox(
-            "Tom do post", 
+            "tone_label",
             ["Profissional", "Casual", "Inspiracional"],
-            key="post_tone_select",
+            key="gen_tone",
             label_visibility="collapsed"
         )
     
