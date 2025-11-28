@@ -25,99 +25,128 @@ st.set_page_config(
 # Custom CSS for LinPost (Minimalist Black/Blue/Purple)
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
     
     * {
-        font-family: 'Inter', sans-serif;
+        font-family: 'Outfit', sans-serif !important;
     }
     
-    /* Main Background - Minimalist Light/Dark friendly */
-    .main {
-        background-color: #f8f9fa;
+    /* Main Background - Dark Premium */
+    .stApp {
+        background: #0f172a;
+        background-image: 
+            radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.15) 0px, transparent 50%),
+            radial-gradient(at 100% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%);
     }
     
-    /* Dark Mode overrides handled by Streamlit, but we define accents */
+    /* Sidebar - Glassmorphism */
+    section[data-testid="stSidebar"] {
+        background: rgba(15, 23, 42, 0.95);
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
     
+    /* Typography */
     h1, h2, h3, h4, h5, h6 {
-        color: #1a1a1a;
-        font-weight: 700;
+        color: #f8fafc !important;
         letter-spacing: -0.5px;
     }
     
-    /* Post Card */
+    p, label, .stMarkdown {
+        color: #cbd5e1 !important;
+    }
+    
+    /* Cards - Glassmorphism Dark */
     .post-card {
-        background: white;
-        border-radius: 12px;
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
         padding: 1.5rem;
         margin-bottom: 1rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        border: 1px solid #e5e7eb;
-        transition: all 0.2s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     .post-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-        border-color: #2563eb; /* Blue */
+        transform: translateY(-4px);
+        background: rgba(30, 41, 59, 0.9);
+        border-color: #3b82f6;
+        box-shadow: 0 20px 40px -12px rgba(37, 99, 235, 0.2);
     }
     
     .post-topic {
-        color: #2563eb; /* Blue */
+        background: linear-gradient(to right, #60a5fa, #a78bfa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         font-weight: 600;
         font-size: 1.1rem;
         margin-bottom: 0.5rem;
     }
     
-    /* Buttons - Gradient Blue/Purple */
+    /* Buttons - Premium Gradient */
     .stButton>button {
         background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-        color: white;
+        color: white !important;
         border: none;
-        border-radius: 8px;
-        padding: 0.5rem 2rem;
-        font-weight: 600;
-        transition: all 0.2s ease;
+        border-radius: 12px;
+        padding: 0.6rem 2rem;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
     
     .stButton>button:hover {
         opacity: 0.9;
-        transform: scale(1.02);
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
     }
     
-    /* Inputs */
-    .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-        border-radius: 8px;
-        border: 1px solid #e5e7eb;
+    /* Inputs - Dark & Clean */
+    .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {
+        background-color: rgba(30, 41, 59, 0.5);
+        color: white !important;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.2s;
     }
     
     .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
-        border-color: #7c3aed; /* Purple */
-        box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+        border-color: #8b5cf6;
+        background-color: rgba(30, 41, 59, 0.8);
+        box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
     }
     
-    /* Hashtags - Minimalist */
+    /* Hashtags - Neon Pills */
     .hashtag-pill {
-        background: #f3f4f6;
-        color: #4b5563;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        margin-right: 4px;
+        background: rgba(37, 99, 235, 0.1);
+        color: #93c5fd;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-right: 6px;
         display: inline-block;
-        border: 1px solid #e5e7eb;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        transition: all 0.2s;
+    }
+    
+    .hashtag-pill:hover {
+        background: rgba(37, 99, 235, 0.2);
+        border-color: #60a5fa;
+        transform: scale(1.05);
     }
 
-    /* Mobile Preview Container */
+    /* Mobile Preview - Premium Frame */
     .mobile-preview-container {
-        border: 12px solid #1a1a1a;
-        border-radius: 30px;
+        border: 14px solid #0f172a;
+        border-radius: 40px;
         overflow: hidden;
-        max-width: 320px;
+        max-width: 340px;
         margin: 0 auto;
-        background: white;
+        background: white; /* Keep content light for realism */
         position: relative;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        box-shadow: 
+            0 0 0 2px #334155,
+            0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
     
     .mobile-notch {
@@ -126,11 +155,16 @@ st.markdown("""
         left: 50%;
         transform: translateX(-50%);
         width: 120px;
-        height: 20px;
-        background: #1a1a1a;
-        border-bottom-left-radius: 12px;
-        border-bottom-right-radius: 12px;
+        height: 24px;
+        background: #0f172a;
+        border-bottom-left-radius: 16px;
+        border-bottom-right-radius: 16px;
         z-index: 10;
+    }
+    
+    /* Metrics Values */
+    div[data-testid="stMetricValue"] {
+        color: white !important;
     }
 
 </style>
