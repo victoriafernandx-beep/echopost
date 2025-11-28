@@ -157,11 +157,34 @@ st.markdown(f"""
     
     /* Inputs */
     .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {{
-        background-color: {current_theme['input_bg']};
+        background-color: {current_theme['input_bg']} !important;
         color: {current_theme['text_main']} !important;
-        border-radius: 6px;
-        border: 1px solid {current_theme['border']};
+        border-radius: 6px !important;
+        border: 1px solid {current_theme['border']} !important;
         font-size: 0.875rem !important;
+        padding: 0.5rem 0.75rem !important;
+    }}
+    
+    .stTextInput>div>div>input::placeholder,
+    .stTextArea>div>div>textarea::placeholder {{
+        color: #9ca3af !important;
+        opacity: 1 !important;
+    }}
+    
+    .stTextInput label, .stTextArea label, .stSelectbox label {{
+        color: {current_theme['text_sec']} !important;
+        font-size: 0.875rem !important;
+        font-weight: 500 !important;
+        margin-bottom: 0.5rem !important;
+    }}
+    
+    /* Fix for overlapping labels */
+    .stTextInput>div>div, .stTextArea>div>div {{
+        position: relative !important;
+    }}
+    
+    .stTextInput label p, .stTextArea label p {{
+        margin-bottom: 0.25rem !important;
     }}
     
     /* Metrics Values */
