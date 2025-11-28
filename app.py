@@ -47,14 +47,14 @@ theme_colors = {
         "metric_val": "white"
     },
     "light": {
-        "bg_main": "#f8f9fa",
+        "bg_main": "#f1f5f9", # Darker gray for background
         "bg_sidebar": "#ffffff",
         "card_bg": "#ffffff",
-        "text_main": "#1a1a1a",
-        "text_sec": "#4b5563",
-        "border": "#e5e7eb",
+        "text_main": "#0f172a", # Darker text
+        "text_sec": "#475569",
+        "border": "#cbd5e1", # Darker border
         "input_bg": "#ffffff",
-        "metric_val": "#1a1a1a"
+        "metric_val": "#0f172a"
     }
 }
 
@@ -91,27 +91,6 @@ st.markdown(f"""
         background: linear-gradient(to right, #2563eb, #7c3aed);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-weight: 600;
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem;
-    }}
-    
-    /* Buttons */
-    .stButton>button {{
-        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-        color: white !important;
-        border: none;
-        border-radius: 12px;
-        padding: 0.6rem 2rem;
-        font-weight: 500;
-        letter-spacing: 0.5px;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-    }}
-    
-    .stButton>button:hover {{
-        opacity: 0.9;
-        transform: translateY(-2px);
         box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
     }}
     
