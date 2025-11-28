@@ -87,29 +87,6 @@ st.markdown(f"""
         color: {current_theme['text_main']} !important;
         letter-spacing: -0.5px;
     }}
-    
-    p, label, .stMarkdown, div[data-testid="stMarkdownContainer"] > p {{
-        color: {current_theme['text_sec']} !important;
-    }}
-    
-    /* Cards */
-    .post-card {{
-        background: {current_theme['card_bg']};
-        backdrop-filter: blur(12px);
-        border: 1px solid {current_theme['border']};
-        border-radius: 16px;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }}
-    
-    .post-card:hover {{
-        transform: translateY(-4px);
-        border-color: #3b82f6;
-        box-shadow: 0 20px 40px -12px rgba(37, 99, 235, 0.2);
-    }}
-    
     .post-topic {{
         background: linear-gradient(to right, #2563eb, #7c3aed);
         -webkit-background-clip: text;
@@ -240,7 +217,7 @@ if page == "🏠 Home":
     
     with col1:
         st.markdown(f"""
-        <div class="post-card" style="text-align: center;">
+        <div class="post-card metric-card">
             <div style="color: #2563eb; font-size: 0.9rem; margin-bottom: 0.5rem;">📝 Total de Posts</div>
             <div style="font-size: 2rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['total_posts']}</div>
             <div style="color: {current_theme['text_sec']}; font-size: 0.75rem;">posts criados</div>
@@ -249,7 +226,7 @@ if page == "🏠 Home":
     
     with col2:
         st.markdown(f"""
-        <div class="post-card" style="text-align: center;">
+        <div class="post-card metric-card">
             <div style="color: #2563eb; font-size: 0.9rem; margin-bottom: 0.5rem;">📅 Neste Período</div>
             <div style="font-size: 2rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['posts_in_period']}</div>
             <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">{'+' if metrics['posts_change'] >= 0 else ''}{metrics['posts_change']}</div>
@@ -259,7 +236,7 @@ if page == "🏠 Home":
     
     with col3:
         st.markdown(f"""
-        <div class="post-card" style="text-align: center;">
+        <div class="post-card metric-card">
             <div style="color: #2563eb; font-size: 0.9rem; margin-bottom: 0.5rem;">🔥 Sequência (Dias)</div>
             <div style="font-size: 2rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['streak']}</div>
             <div style="color: {current_theme['text_sec']}; font-size: 0.75rem;">dias consecutivos</div>
@@ -268,7 +245,7 @@ if page == "🏠 Home":
     
     with col4:
         st.markdown(f"""
-        <div class="post-card" style="text-align: center;">
+        <div class="post-card metric-card">
             <div style="color: #2563eb; font-size: 0.9rem; margin-bottom: 0.5rem;">📏 Média de Palavras</div>
             <div style="font-size: 2rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['avg_words']}</div>
             <div style="color: {current_theme['text_sec']}; font-size: 0.75rem;">palavras por post</div>
