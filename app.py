@@ -16,195 +16,251 @@ if "code" in st.query_params:
         st.error(f"❌ Erro ao conectar: {message}")
 
 st.set_page_config(
-    page_title="LinPost",
-    page_icon="assets/logo.jpg",
+    page_title="LinPost - Conteúdo Inteligente para LinkedIn",
+    page_icon="assets/logo-icon.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Theme colors - Light mode only
+# LinPost Premium Theme - New Brand Identity
 current_theme = {
-    "bg_main": "#ffffff",
-    "bg_sidebar": "#f8f9fa",
-    "card_bg": "#ffffff",
-    "text_main": "#1a1a1a",
-    "text_sec": "#6b7280",
-    "border": "#e5e7eb",
-    "input_bg": "#ffffff",
-    "metric_val": "#1a1a1a"
+    # Primary Colors
+    "purple_neon": "#8B5CF6",      # Brand identity, icons, highlights
+    "cyan_blue": "#0EA5E9",        # Primary actions, buttons
+    "deep_black": "#0D0D0D",       # Main text
+    
+    # Secondary Colors
+    "soft_gray": "#F3F4F6",        # Card backgrounds
+    "graphite": "#374151",         # Secondary text
+    "border_gray": "#E5E7EB",      # Borders, dividers
+    "light_lilac": "#C4B5FD",      # Subtle details
+    "light_blue": "#7DD3FC",       # Hover states
+    
+    # Feedback Colors
+    "success": "#22C55E",
+    "warning": "#FACC15",
+    "error": "#EF4444",
+    
+    # Backgrounds
+    "bg_main": "#FFFFFF",
+    "bg_sidebar": "#FFFFFF",
+    "card_bg": "#F9FAFB"
 }
 
 st.markdown(f"""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    /* LinPost Premium Design System */
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
     
-    /* Apply font to body and common text elements, avoiding icons */
-    /* Apply font to main app container */
+    /* === TYPOGRAPHY === */
     .stApp {{
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    }}
-    
-    /* Specific text overrides - REMOVED span and div to protect icons */
-    h1, h2, h3, p, label, input, textarea, button {{
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    }}
-    
-    /* Main Background */
-    .stApp {{
         background-color: {current_theme['bg_main']};
     }}
     
-    /* Sidebar */
-    section[data-testid="stSidebar"] {{
-        background: {current_theme['bg_sidebar']};
-        border-right: 1px solid {current_theme['border']};
+    h1, h2, h3 {{
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
     }}
     
-    /* Typography */
     h1 {{
-        color: {current_theme['text_main']} !important;
-        font-size: 2rem !important;
+        color: {current_theme['deep_black']} !important;
+        font-size: 2.125rem !important;
         font-weight: 700 !important;
-        letter-spacing: -0.025em !important;
+        letter-spacing: -0.03em !important;
+        margin-bottom: 0.5rem !important;
     }}
     
     h2 {{
-        color: {current_theme['text_main']} !important;
-        font-size: 1.5rem !important;
+        color: {current_theme['deep_black']} !important;
+        font-size: 1.625rem !important;
         font-weight: 600 !important;
         letter-spacing: -0.025em !important;
+        margin-bottom: 0.75rem !important;
     }}
     
     h3 {{
-        color: {current_theme['text_main']} !important;
-        font-size: 1.125rem !important;
+        color: {current_theme['deep_black']} !important;
+        font-size: 1.25rem !important;
         font-weight: 600 !important;
+        margin-bottom: 0.5rem !important;
     }}
     
-    p, label, .stMarkdown, div[data-testid="stMarkdownContainer"] > p {{
-        color: {current_theme['text_sec']} !important;
-        font-size: 0.875rem !important;
+    p, label, .stMarkdown {{
+        color: {current_theme['graphite']} !important;
+        font-size: 0.9375rem !important;
+        line-height: 1.6 !important;
     }}
-
-    /* Cards */
+    
+    /* === SIDEBAR === */
+    section[data-testid="stSidebar"] {{
+        background: {current_theme['bg_sidebar']};
+        border-right: 1px solid {current_theme['border_gray']};
+        padding-top: 1.5rem;
+    }}
+    
+    /* Sidebar navigation items */
+    section[data-testid="stSidebar"] .stRadio > label {{
+        color: {current_theme['graphite']} !important;
+        font-weight: 500 !important;
+        padding: 0.625rem 1rem !important;
+        border-radius: 8px !important;
+        transition: all 0.2s ease !important;
+    }}
+    
+    section[data-testid="stSidebar"] .stRadio > label:hover {{
+        background: {current_theme['soft_gray']} !important;
+        color: {current_theme['purple_neon']} !important;
+    }}
+    
+    section[data-testid="stSidebar"] .stRadio > label[data-selected="true"] {{
+        background: linear-gradient(135deg, {current_theme['purple_neon']}15 0%, {current_theme['cyan_blue']}15 100%) !important;
+        color: {current_theme['purple_neon']} !important;
+        font-weight: 600 !important;
+        border-left: 3px solid {current_theme['purple_neon']} !important;
+    }}
+    
+    /* === BUTTONS === */
+    .stButton > button {{
+        background: {current_theme['cyan_blue']};
+        color: white !important;
+        border: none;
+        border-radius: 10px;
+        padding: 0.625rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.9375rem !important;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(14, 165, 233, 0.25);
+    }}
+    
+    .stButton > button:hover {{
+        background: #0284C7;
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+        transform: translateY(-1px);
+    }}
+    
+    .stButton > button:active {{
+        transform: translateY(0);
+    }}
+    
+    /* Form submit button (primary action) */
+    .stForm button[kind="primary"] {{
+        background: {current_theme['cyan_blue']} !important;
+    }}
+    
+    /* === INPUTS === */
+    .stTextInput > div > div > input,
+    .stTextArea > div > div > textarea,
+    .stSelectbox > div > div > div {{
+        background-color: white !important;
+        color: {current_theme['deep_black']} !important;
+        border-radius: 8px !important;
+        border: 1.5px solid {current_theme['border_gray']} !important;
+        font-size: 0.9375rem !important;
+        padding: 0.75rem 1rem !important;
+        transition: all 0.2s ease !important;
+    }}
+    
+    .stTextInput > div > div > input:focus,
+    .stTextArea > div > div > textarea:focus {{
+        border-color: {current_theme['purple_neon']} !important;
+        box-shadow: 0 0 0 3px {current_theme['purple_neon']}20 !important;
+    }}
+    
+    .stTextInput > div > div > input::placeholder,
+    .stTextArea > div > div > textarea::placeholder {{
+        color: #9CA3AF !important;
+        opacity: 1 !important;
+    }}
+    
+    .stTextInput label, .stTextArea label, .stSelectbox label {{
+        color: {current_theme['deep_black']} !important;
+        font-size: 0.875rem !important;
+        font-weight: 600 !important;
+        margin-bottom: 0.5rem !important;
+    }}
+    
+    /* === CARDS === */
     .post-card {{
-        background: {current_theme['card_bg']};
-        border: 1px solid {current_theme['border']};
-        border-radius: 8px;
-        padding: 1.25rem;
+        background: white;
+        border: 1px solid {current_theme['border_gray']};
+        border-radius: 12px;
+        padding: 1.5rem;
         margin-bottom: 1rem;
         transition: all 0.2s ease;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }}
+    
+    .post-card:hover {{
+        border-color: {current_theme['purple_neon']};
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+        transform: translateY(-2px);
     }}
     
     .metric-card {{
+        background: white;
+        border: 1px solid {current_theme['border_gray']};
+        border-radius: 12px;
+        padding: 1.5rem;
         min-height: 140px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         text-align: center;
+        transition: all 0.2s ease;
     }}
     
-    .post-card:hover {{
-        border-color: #3b82f6;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        transform: translateY(-1px);
+    .metric-card:hover {{
+        border-color: {current_theme['light_lilac']};
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
     }}
     
-    .post-topic {{
-        color: #2563eb;
-        font-weight: 600;
-        font-size: 1rem;
-        margin-bottom: 0.5rem;
-    }}
-    
-    /* Buttons */
-    .stButton>button {{
-        background: #2563eb;
-        color: white !important;
-        border: none;
-        border-radius: 6px;
-        padding: 0.5rem 1.25rem;
-        font-weight: 500;
-        font-size: 0.875rem !important;
-        transition: all 0.2s;
-    }}
-    
-    .stButton>button:hover {{
-        background: #1d4ed8;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-    }}
-    
-    /* Inputs */
-    .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {{
-        background-color: {current_theme['input_bg']} !important;
-        color: {current_theme['text_main']} !important;
-        border-radius: 6px !important;
-        border: 1px solid {current_theme['border']} !important;
-        font-size: 0.875rem !important;
-        padding: 0.5rem 0.75rem !important;
-    }}
-    
-    .stTextInput>div>div>input::placeholder,
-    .stTextArea>div>div>textarea::placeholder {{
-        color: #9ca3af !important;
-        opacity: 1 !important;
-    }}
-    
-    .stTextInput label, .stTextArea label, .stSelectbox label {{
-        color: {current_theme['text_sec']} !important;
-        font-size: 0.875rem !important;
-        font-weight: 500 !important;
-        margin-bottom: 0.5rem !important;
-    }}
-    
-    /* Fix for overlapping labels */
-    .stTextInput>div>div, .stTextArea>div>div {{
-        position: relative !important;
-    }}
-    
-    .stTextInput label p, .stTextArea label p {{
-        margin-bottom: 0.25rem !important;
-    }}
-    
-    /* Removed aggressive hiding rules to restore input functionality */
-    
-    /* Metrics Values */
+    /* === METRICS === */
     div[data-testid="stMetricValue"] {{
-        color: {current_theme['metric_val']} !important;
-        font-size: 1.875rem !important;
+        color: {current_theme['deep_black']} !important;
+        font-size: 2rem !important;
         font-weight: 700 !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
     }}
     
     div[data-testid="stMetricLabel"] {{
-        font-size: 0.75rem !important;
-        color: {current_theme['text_sec']} !important;
-        font-weight: 500 !important;
+        font-size: 0.8125rem !important;
+        color: {current_theme['graphite']} !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
     }}
     
-    /* Hashtags */
-    .hashtag-pill {{
-        background: rgba(37, 99, 235, 0.05);
-        color: #2563eb;
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        margin-right: 4px;
-        display: inline-block;
-        border: 1px solid rgba(37, 99, 235, 0.1);
+    /* === SPECIAL ELEMENTS === */
+    .post-topic {{
+        color: {current_theme['purple_neon']};
+        font-weight: 600;
+        font-size: 1.0625rem;
+        margin-bottom: 0.5rem;
     }}
-
-    /* Mobile Preview */
+    
+    .hashtag-pill {{
+        background: {current_theme['purple_neon']}15;
+        color: {current_theme['purple_neon']};
+        padding: 0.375rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        margin-right: 0.5rem;
+        display: inline-block;
+        border: 1px solid {current_theme['purple_neon']}30;
+    }}
+    
+    /* === MOBILE PREVIEW === */
     .mobile-preview-container {{
-        border: 10px solid #1e293b;
+        border: 10px solid {current_theme['deep_black']};
         border-radius: 28px;
         overflow: hidden;
         max-width: 300px;
         margin: 0 auto;
         background: white;
         position: relative;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     }}
     
     .mobile-notch {{
@@ -214,10 +270,53 @@ st.markdown(f"""
         transform: translateX(-50%);
         width: 90px;
         height: 18px;
-        background: #1e293b;
+        background: {current_theme['deep_black']};
         border-bottom-left-radius: 10px;
         border-bottom-right-radius: 10px;
         z-index: 10;
+    }}
+    
+    /* === EXPANDER === */
+    .streamlit-expanderHeader {{
+        background: {current_theme['soft_gray']} !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+    }}
+    
+    /* === SUCCESS/ERROR MESSAGES === */
+    .stSuccess {{
+        background: {current_theme['success']}15 !important;
+        border-left: 4px solid {current_theme['success']} !important;
+        border-radius: 8px !important;
+    }}
+    
+    .stError {{
+        background: {current_theme['error']}15 !important;
+        border-left: 4px solid {current_theme['error']} !important;
+        border-radius: 8px !important;
+    }}
+    
+    .stWarning {{
+        background: {current_theme['warning']}15 !important;
+        border-left: 4px solid {current_theme['warning']} !important;
+        border-radius: 8px !important;
+    }}
+    
+    /* === TABS === */
+    .stTabs [data-baseweb="tab-list"] {{
+        gap: 0.5rem;
+    }}
+    
+    .stTabs [data-baseweb="tab"] {{
+        border-radius: 8px;
+        padding: 0.625rem 1.25rem;
+        font-weight: 600;
+        color: {current_theme['graphite']};
+    }}
+    
+    .stTabs [aria-selected="true"] {{
+        background: {current_theme['purple_neon']}15 !important;
+        color: {current_theme['purple_neon']} !important;
     }}
 
 </style>
@@ -226,34 +325,62 @@ st.markdown(f"""
 # Sidebar Branding
 with st.sidebar:
     try:
-        st.image("assets/logo.jpg", width=150)
+        st.image("assets/logo.png", width=180)
     except:
-        st.title("LinPost")
+        st.markdown("### LinPost")
     
-    st.markdown("### Sua plataforma de conteúdo")
+    st.markdown("""
+    <div style='text-align: center; margin-top: -10px; margin-bottom: 20px;'>
+        <p style='font-size: 0.8125rem; color: #374151; font-weight: 500;'>
+            Conteúdo inteligente para LinkedIn
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
-page = st.sidebar.radio("Navegação", ["🏠 Home", "✨ Gerador de Posts", "🎙️ Criar de Mídia", "📡 News Radar", "⚙️ Configurações"])
+page = st.sidebar.radio("Navegação", [
+    "🏠 Home", 
+    "✨ Gerador de Posts", 
+    "🎙️ Criar de Mídia", 
+    "📡 News Radar", 
+    "⚙️ Configurações"
+])
 
 # Keyboard shortcuts hint
 st.sidebar.markdown("---")
 st.sidebar.markdown("### ⌨️ Atalhos")
 st.sidebar.markdown("""
-<small>
-• Ctrl+S: Salvar post<br>
-• Ctrl+Enter: Gerar post<br>
-• Esc: Limpar editor
+<small style='color: #6B7280;'>
+• <kbd>Ctrl+S</kbd> Salvar post<br>
+• <kbd>Ctrl+Enter</kbd> Gerar post<br>
+• <kbd>Esc</kbd> Limpar editor
 </small>
 """, unsafe_allow_html=True)
+
+
 
 
 if page == "🏠 Home":
     from src import analytics
     import plotly.graph_objects as go
     
-    st.markdown("## 👋 Bem-vindo ao LinPost")
+    # Hero Section
+    st.markdown(f"""
+    <div style='text-align: center; padding: 2rem 0 1.5rem 0;'>
+        <h1 style='font-size: 2.5rem; margin-bottom: 0.75rem; background: linear-gradient(135deg, {current_theme['purple_neon']} 0%, {current_theme['cyan_blue']} 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;'>
+            ✨ Bem-vindo ao LinPost
+        </h1>
+        <p style='font-size: 1.125rem; color: {current_theme['graphite']}; max-width: 600px; margin: 0 auto;'>
+            Sua central inteligente para criar conteúdo, ideias e posts usando IA — com consistência e velocidade.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
     
     # Period selector
     col_title, col_period = st.columns([3, 1])
+    with col_title:
+        st.markdown("### 📊 Seu painel de criação")
     with col_period:
         period_options = {
             "7 dias": 7,
@@ -267,44 +394,50 @@ if page == "🏠 Home":
     # Get metrics for selected period
     metrics = analytics.get_metrics(period_days)
     
+    
     # Metrics Cards with comparison
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         st.markdown(f"""
         <div class="post-card metric-card">
-            <div style="color: #6b7280; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">📝 Total de Posts</div>
-            <div style="font-size: 1.875rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['total_posts']}</div>
-            <div style="color: {current_theme['text_sec']}; font-size: 0.75rem; margin-top: 0.25rem;">posts criados</div>
+            <div style="color: {current_theme['purple_neon']}; font-size: 2rem; margin-bottom: 0.5rem;">📝</div>
+            <div style="font-size: 2rem; font-weight: 700; color: {current_theme['deep_black']}; font-family: 'Plus Jakarta Sans', sans-serif;">{metrics['total_posts']}</div>
+            <div style="color: {current_theme['graphite']}; font-size: 0.8125rem; margin-top: 0.25rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Total de Posts</div>
+            <div style="color: {current_theme['graphite']}; font-size: 0.75rem; margin-top: 0.25rem;">Quantos posts você já criou aqui</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
         st.markdown(f"""
         <div class="post-card metric-card">
-            <div style="color: #6b7280; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">📅 Período</div>
-            <div style="font-size: 1.875rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['posts_in_period']}</div>
-            <div style="color: #10b981; font-size: 0.75rem; margin-top: 0.25rem; font-weight: 600;">{'+' if metrics['posts_change'] >= 0 else ''}{metrics['posts_change']} <span style="font-weight: 400; color: {current_theme['text_sec']};">vs anterior</span></div>
+            <div style="color: {current_theme['cyan_blue']}; font-size: 2rem; margin-bottom: 0.5rem;">🔥</div>
+            <div style="font-size: 2rem; font-weight: 700; color: {current_theme['deep_black']}; font-family: 'Plus Jakarta Sans', sans-serif;">{metrics['posts_in_period']}</div>
+            <div style="color: {current_theme['graphite']}; font-size: 0.8125rem; margin-top: 0.25rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Sequência</div>
+            <div style="color: {current_theme['success'] if metrics['posts_change'] >= 0 else current_theme['error']}; font-size: 0.75rem; margin-top: 0.25rem; font-weight: 600;">{'+' if metrics['posts_change'] >= 0 else ''}{metrics['posts_change']} <span style="font-weight: 400; color: {current_theme['graphite']};">vs anterior</span></div>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
         st.markdown(f"""
         <div class="post-card metric-card">
-            <div style="color: #6b7280; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">🔥 Sequência</div>
-            <div style="font-size: 1.875rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['streak']}</div>
-            <div style="color: {current_theme['text_sec']}; font-size: 0.75rem; margin-top: 0.25rem;">dias consecutivos</div>
+            <div style="color: {current_theme['purple_neon']}; font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+            <div style="font-size: 2rem; font-weight: 700; color: {current_theme['deep_black']}; font-family: 'Plus Jakarta Sans', sans-serif;">{metrics['avg_words']}</div>
+            <div style="color: {current_theme['graphite']}; font-size: 0.8125rem; margin-top: 0.25rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Média de Palavras</div>
+            <div style="color: {current_theme['graphite']}; font-size: 0.75rem; margin-top: 0.25rem;">Ideal entre 80-200</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col4:
         st.markdown(f"""
         <div class="post-card metric-card">
-            <div style="color: #6b7280; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">📏 Média</div>
-            <div style="font-size: 1.875rem; font-weight: 700; color: {current_theme['text_main']};">{metrics['avg_words']}</div>
-            <div style="color: {current_theme['text_sec']}; font-size: 0.75rem; margin-top: 0.25rem;">palavras/post</div>
+            <div style="color: {current_theme['cyan_blue']}; font-size: 2rem; margin-bottom: 0.5rem;">🔥</div>
+            <div style="font-size: 2rem; font-weight: 700; color: {current_theme['deep_black']}; font-family: 'Plus Jakarta Sans', sans-serif;">{metrics['streak']}</div>
+            <div style="color: {current_theme['graphite']}; font-size: 0.8125rem; margin-top: 0.25rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Sequência Ativa</div>
+            <div style="color: {current_theme['graphite']}; font-size: 0.75rem; margin-top: 0.25rem;">Dias consecutivos criando</div>
         </div>
         """, unsafe_allow_html=True)
+    
     
     st.markdown("<br>", unsafe_allow_html=True)
     
@@ -513,7 +646,17 @@ if page == "🏠 Home":
 elif page == "✨ Gerador de Posts":
     from src import ai_helpers, templates, resources
     
-    st.markdown("## ✨ Gerador de Conteúdo")
+    # Hero Section
+    st.markdown(f"""
+    <div style='margin-bottom: 2rem;'>
+        <h1 style='font-size: 2.25rem; margin-bottom: 0.5rem; color: {current_theme['deep_black']};'>
+            ✨ Gerador de Conteúdo com IA
+        </h1>
+        <p style='font-size: 1rem; color: {current_theme['graphite']};'>
+            Transforme qualquer ideia em um post pronto para publicar.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Templates Library
     with st.expander("📚 Biblioteca de Templates", expanded=False):
@@ -562,37 +705,6 @@ elif page == "✨ Gerador de Posts":
                     if 'last_post' in st.session_state:
                         st.session_state['last_post'] = f"{phrase}\n\n{st.session_state.get('last_post', '')}"
                         st.rerun()
-    
-    # Using form to isolate inputs and prevent key display bug
-    with st.form(key="post_generator_form", clear_on_submit=False):
-        # Custom labels with HTML
-        st.markdown(f"""
-        <div style='margin-bottom: 0.5rem;'>
-            <span style='color: {current_theme['text_sec']}; font-size: 0.875rem; font-weight: 500;'>
-                💡 Sobre o que você quer escrever?
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            topic = st.text_input(
-                "topic",
-                value="",
-                placeholder="Ex: Inteligência Artificial no mercado de trabalho",
-                label_visibility="collapsed"
-            )
-        
-        with col2:
-            st.markdown(f"""
-            <div style='margin-bottom: 0.5rem;'>
-                <span style='color: {current_theme['text_sec']}; font-size: 0.875rem; font-weight: 500;'>
-                    🎭 Tom do post
-                </span>
-            </div>
-            """, unsafe_allow_html=True)
-            
             tone = st.selectbox(
                 "tone",
                 ["Profissional", "Casual", "Inspiracional"],
@@ -919,8 +1031,17 @@ Você tem sido consistente nos seus projetos? 👇
 elif page == "📡 News Radar":
     from src import news
     
-    st.markdown("## 📡 News Radar")
-    st.markdown("### Descubra notícias relevantes e gere posts automaticamente")
+    # Hero Section
+    st.markdown(f"""
+    <div style='margin-bottom: 2rem;'>
+        <h1 style='font-size: 2.25rem; margin-bottom: 0.5rem; color: {current_theme['deep_black']};'>
+            🛰️ News Radar
+        </h1>
+        <p style='font-size: 1rem; color: {current_theme['graphite']};'>
+            Descubra notícias relevantes e transforme em conteúdo com IA.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Check if API key is configured
     api_key = news.get_news_api_key()
@@ -935,7 +1056,7 @@ elif page == "📡 News Radar":
         with col_search:
             search_topic = st.text_input(
                 "🔍 Buscar notícias sobre:",
-                placeholder="Ex: Inteligência Artificial, Tecnologia, Startups...",
+                placeholder="Ex.: Inteligência Artificial, Tendências de marketing, Startups, Tecnologia...",
                 key="news_search"
             )
         
@@ -1031,7 +1152,17 @@ O post deve:
 elif page == "⚙️ Configurações":
     from src import linkedin
     
-    st.markdown("## ⚙️ Configurações")
+    # Hero Section
+    st.markdown(f"""
+    <div style='margin-bottom: 2rem;'>
+        <h1 style='font-size: 2.25rem; margin-bottom: 0.5rem; color: {current_theme['deep_black']};'>
+            ⚙️ Configurações
+        </h1>
+        <p style='font-size: 1rem; color: {current_theme['graphite']};'>
+            Gerencie suas integrações e preferências.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
     st.markdown("### 🔗 Integração LinkedIn")
     
@@ -1043,7 +1174,7 @@ elif page == "⚙️ Configurações":
             linkedin.disconnect_linkedin()
             st.rerun()
     else:
-        st.info("📌 Conecte sua conta do LinkedIn para publicar posts diretamente da plataforma.")
+        st.info("📌 Conecte sua conta do LinkedIn para publicar posts diretamente do LinPost.")
         
         auth_url = linkedin.get_authorization_url()
         if auth_url:
@@ -1053,5 +1184,5 @@ elif page == "⚙️ Configurações":
     
     st.markdown("---")
     st.markdown("### 🔑 Chaves de API")
-    st.info("🚧 Em breve: Configure suas chaves de API do Gemini e NewsAPI.")
+    st.info("Configure suas chaves nos secrets do Streamlit Cloud para habilitar recursos avançados.")
 
