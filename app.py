@@ -38,8 +38,15 @@ st.markdown(f"""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
-    * {{
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    /* Apply font to body and common text elements, avoiding icons */
+    /* Apply font to main app container */
+    .stApp {{
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }}
+    
+    /* Specific text overrides - REMOVED span and div to protect icons */
+    h1, h2, h3, p, label, input, textarea, button {{
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }}
     
     /* Main Background */
@@ -161,42 +168,7 @@ st.markdown(f"""
         margin-bottom: 0.25rem !important;
     }}
     
-    /* Hide widget keys that appear in inputs */
-    [data-testid="stText"] {{
-        display: none !important;
-    }}
-    
-    /* Fix for key text appearing in inputs - more specific */
-    .stTextInput div[data-baseweb="input"] > div:first-child {{
-        display: none !important;
-    }}
-    
-    .stTextArea div[data-baseweb="textarea"] > div:first-child {{
-        display: none !important;
-    }}
-    
-    /* Ensure input text is visible and not overlapped */
-    input[type="text"], textarea {{
-        position: relative !important;
-        z-index: 1 !important;
-    }}
-    
-    /* Aggressive hiding of any text that looks like a key */
-    div[class*="st-key"] {{
-        display: none !important;
-    }}
-    
-    /* Hide any div containing "key" text pattern */
-    .stTextInput > div > div > div:not([data-baseweb]) {{
-        display: none !important;
-    }}
-    
-    /* Force hide elements with key-like content */
-    .stTextInput [class*="StyledWidgetLabel"] ~ div > div:first-child {{
-        visibility: hidden !important;
-        height: 0 !important;
-        overflow: hidden !important;
-    }}
+    /* Removed aggressive hiding rules to restore input functionality */
     
     /* Metrics Values */
     div[data-testid="stMetricValue"] {{
@@ -694,6 +666,9 @@ elif page == "✨ Gerador de Posts":
         with col_preview:
             st.markdown("### 📱 Preview Mobile")
             
+            # Define user_id for preview
+            user_id = "test_user"
+            
             # Content score
             score, feedback = ai_helpers.score_content(content)
             
@@ -728,6 +703,9 @@ elif page == "✨ Gerador de Posts":
                     st.markdown(f"- {item}")
             
             # Mobile LinkedIn preview (iPhone style)
+            import html
+            escaped_content = html.escape(content)
+            
             st.markdown(f"""
             <div class="mobile-preview-container">
                 <div class="mobile-notch"></div>
@@ -769,15 +747,8 @@ elif page == "✨ Gerador de Posts":
                         
                         <!-- Content -->
                         <div style="color: #1a1a1a; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; font-size: 14px; margin-bottom: 12px;">
-                            {content}
+                            {escaped_content}
                         </div>
-                        
-                        <!-- Hashtags (Visual only, if not in content) -->
-                        <!-- 
-                        <div style="margin-bottom: 12px;">
-                            <span style="color: #2563eb; font-weight: 600; font-size: 14px;">#LinPost #Innovation</span>
-                        </div>
-                        -->
                         
                         <!-- Engagement Stats -->
                         <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f3f4f6; padding-top: 8px; margin-bottom: 8px;">

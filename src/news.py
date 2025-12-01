@@ -44,17 +44,29 @@ def fetch_news(topic, language='pt', sort_by='relevancy'):
         
         if response['status'] == 'ok':
             articles = response['articles']
+            print(f"[DEBUG] Found {len(articles)} articles raw.")
+            
             # Filter out articles with removed content
             valid_articles = [
                 a for a in articles 
                 if a['title'] != '[Removed]' and a['description'] is not None
             ]
+            print(f"[DEBUG] Found {len(valid_articles)} valid articles.")
+            
+            # Fallback: If no articles found and language was specific, try English
+            if not valid_articles and language != 'en':
+                print("[DEBUG] No articles found. Retrying with English...")
+                return fetch_news(topic, language='en', sort_by=sort_by)
+                
             return valid_articles
         else:
+            print(f"[DEBUG] NewsAPI status: {response.get('status')}, message: {response.get('message')}")
             return []
             
     except Exception as e:
         print(f"Error fetching news: {e}")
+        import traceback
+        traceback.print_exc()
         return []
 
 def format_news_for_prompt(article):

@@ -1,12 +1,13 @@
-import google.generativeai as genai
+import openai
 import streamlit as st
 from src import database
 
-def configure_genai():
+def configure_openai():
     try:
-        api_key = st.secrets["GEMINI_API_KEY"]
-        genai.configure(api_key=api_key)
-        return True
+        api_key = st.secrets["OPENAI_API_KEY"]
+        if not api_key:
+            return False
+        return api_key
     except Exception as e:
         st.error(f"Erro na configuração da IA: {e}")
         return False
@@ -24,19 +25,19 @@ def get_style_examples():
         return ""
 
 def generate_post(topic, tone="Profissional"):
-    """Generate a post using Gemini AI"""
+    """Generate a post using OpenAI GPT-4o"""
     
-    if not configure_genai():
+    api_key = configure_openai()
+    if not api_key:
         return "Erro: Chave de API não configurada."
 
-    # Using gemini-flash-latest which is stable and widely available
-    model = genai.GenerativeModel('gemini-flash-latest')
+    client = openai.OpenAI(api_key=api_key)
     
     style_context = get_style_examples()
     
-    prompt = f"""
-    Atue como um especialista em LinkedIn e criador de conteúdo viral.
+    system_prompt = "Você é um especialista em LinkedIn e criador de conteúdo viral."
     
+    user_prompt = f"""
     Sua tarefa é escrever um post sobre o tema: "{topic}"
     
     Tom de voz desejado: {tone}
@@ -58,8 +59,18 @@ def generate_post(topic, tone="Profissional"):
     
     try:
         with st.spinner('🤖 A IA está pensando e escrevendo...'):
-            response = model.generate_content(prompt)
-            return response.text
+            response = client.chat.completions.create(
+                model="gpt-4o-mini", # Using mini for speed/cost, can be gpt-4o
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.7
+            )
+            return response.choices[0].message.content
     except Exception as e:
-        return f"Erro ao gerar conteúdo: {str(e)}\n\nVerifique sua API Key."
+        error_msg = str(e)
+        if "401" in error_msg:
+            return f"Erro de Autenticação (401): Sua chave API da OpenAI pode estar inválida. Verifique o arquivo secrets.toml.\nDetalhes: {error_msg}"
+        return f"Erro ao gerar conteúdo: {error_msg}\n\nVerifique sua API Key."
 
