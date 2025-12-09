@@ -5,7 +5,7 @@ newsapi-python
 python-dotenv
 watchdog
 plotly
-
-
+apscheduler
+pytz
 
 openai

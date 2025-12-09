@@ -1,5 +1,6 @@
 import openai
 import streamlit as st
+import re
 from src import database
 
 def configure_openai():
@@ -53,6 +54,7 @@ def generate_post(topic, tone="Profissional"):
     6. Adicione 3-5 hashtags relevantes no final.
     7. O post deve ter entre 500-1000 caracteres.
     8. NÃO coloque título "Título:" ou "Assunto:", comece direto no texto.
+    9. IMPORTANTE: Escreva APENAS texto puro. NÃO use HTML, tags, comentários ou qualquer código.
     
     Escreva o post agora:
     """
@@ -67,7 +69,15 @@ def generate_post(topic, tone="Profissional"):
                 ],
                 temperature=0.7
             )
-            return response.choices[0].message.content
+            # Strip any HTML tags and comments from the response
+            content = response.choices[0].message.content
+            # Remove HTML comments first
+            clean_content = re.sub(r'<!--.*?-->', '', content, flags=re.DOTALL)
+            # Remove HTML/XML tags
+            clean_content = re.sub(r'<[^>]+>', '', clean_content)
+            # Clean up extra whitespace
+            clean_content = re.sub(r'\n\s*\n', '\n\n', clean_content).strip()
+            return clean_content
     except Exception as e:
         error_msg = str(e)
         if "401" in error_msg:

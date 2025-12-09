@@ -67,6 +67,17 @@ def exchange_code_for_token(code):
         st.session_state['linkedin_access_token'] = token_data['access_token']
         st.session_state['linkedin_token_expires_in'] = token_data.get('expires_in', 5184000)
         
+        # Save token to database for offline access
+        from src import database, auth
+        user = auth.get_current_user()
+        if user:
+            database.save_linkedin_token(
+                user_id=user.id,
+                access_token=token_data['access_token'],
+                refresh_token=token_data.get('refresh_token'),
+                expires_in=token_data.get('expires_in')
+            )
+        
         return True, "Conectado com sucesso!"
     except Exception as e:
         return False, f"Erro ao conectar: {str(e)}"

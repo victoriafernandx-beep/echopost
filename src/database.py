@@ -112,3 +112,208 @@ def get_all_tags(user_id):
     except Exception as e:
         st.error(f"Error fetching tags: {e}")
         return []
+
+# ============================================
+# SCHEDULED POSTS FUNCTIONS
+# ============================================
+
+def create_scheduled_post(user_id, content, topic, scheduled_time, timezone="UTC", tags=None):
+    """Create a new scheduled post"""
+    supabase = init_supabase()
+    data = {
+        "user_id": user_id,
+        "content": content,
+        "topic": topic,
+        "scheduled_time": scheduled_time,
+        "timezone": timezone,
+        "tags": tags or [],
+        "status": "pending"
+    }
+    try:
+        response = supabase.table("scheduled_posts").insert(data).execute()
+        return response
+    except Exception as e:
+        st.error(f"Error creating scheduled post: {e}")
+        return None
+
+def get_scheduled_posts(user_id, status=None, limit=None):
+    """Get scheduled posts for a user, optionally filtered by status"""
+    supabase = init_supabase()
+    try:
+        query = supabase.table("scheduled_posts").select("*").eq("user_id", user_id)
+        
+        if status:
+            query = query.eq("status", status)
+        
+        query = query.order("scheduled_time", desc=False)
+        
+        if limit:
+            query = query.limit(limit)
+        
+        response = query.execute()
+        return response.data
+    except Exception as e:
+        st.error(f"Error fetching scheduled posts: {e}")
+        return []
+
+def get_posts_to_publish():
+    """Get all pending posts that are ready to be published (scheduled_time <= now)"""
+    supabase = init_supabase()
+    try:
+        from datetime import datetime
+        now = datetime.utcnow().isoformat()
+        
+        response = supabase.table("scheduled_posts")\
+            .select("*")\
+            .eq("status", "pending")\
+            .lte("scheduled_time", now)\
+            .execute()
+        
+        return response.data
+    except Exception as e:
+        print(f"Error fetching posts to publish: {e}")
+        return []
+
+def update_scheduled_post_status(post_id, status, linkedin_post_id=None, error_message=None):
+    """Update the status of a scheduled post after publishing attempt"""
+    supabase = init_supabase()
+    try:
+        from datetime import datetime
+        
+        update_data = {"status": status}
+        
+        if status == "published":
+            update_data["published_at"] = datetime.utcnow().isoformat()
+            if linkedin_post_id:
+                update_data["linkedin_post_id"] = linkedin_post_id
+        
+        if status == "failed" and error_message:
+            update_data["error_message"] = error_message
+            # Increment retry count
+            post = supabase.table("scheduled_posts").select("retry_count").eq("id", post_id).execute()
+            if post.data:
+                current_retry = post.data[0].get("retry_count", 0)
+                update_data["retry_count"] = current_retry + 1
+        
+        response = supabase.table("scheduled_posts").update(update_data).eq("id", post_id).execute()
+        return response
+    except Exception as e:
+        st.error(f"Error updating scheduled post status: {e}")
+        return None
+
+def delete_scheduled_post(post_id):
+    """Delete/cancel a scheduled post"""
+    supabase = init_supabase()
+    try:
+        # Option 1: Actually delete
+        # response = supabase.table("scheduled_posts").delete().eq("id", post_id).execute()
+        
+        # Option 2: Mark as cancelled (better for audit trail)
+        response = supabase.table("scheduled_posts").update({"status": "cancelled"}).eq("id", post_id).execute()
+        return response
+    except Exception as e:
+        st.error(f"Error deleting scheduled post: {e}")
+        return None
+
+def reschedule_post(post_id, new_scheduled_time, new_timezone=None):
+    """Reschedule a post to a new time"""
+    supabase = init_supabase()
+    try:
+        update_data = {
+            "scheduled_time": new_scheduled_time,
+            "status": "pending"  # Reset to pending if it was failed
+        }
+        
+        if new_timezone:
+            update_data["timezone"] = new_timezone
+        
+        response = supabase.table("scheduled_posts").update(update_data).eq("id", post_id).execute()
+        return response
+    except Exception as e:
+        st.error(f"Error rescheduling post: {e}")
+        return None
+
+def get_scheduled_posts_count(user_id, status="pending"):
+    """Get count of scheduled posts by status"""
+    supabase = init_supabase()
+    try:
+        response = supabase.table("scheduled_posts")\
+            .select("id", count="exact")\
+            .eq("user_id", user_id)\
+            .eq("status", status)\
+            .execute()
+        
+        return response.count if hasattr(response, 'count') else len(response.data)
+    except Exception as e:
+        st.error(f"Error counting scheduled posts: {e}")
+        return 0
+
+def get_upcoming_scheduled_posts(user_id, days=7):
+    """Get scheduled posts for the next N days"""
+    supabase = init_supabase()
+    try:
+        from datetime import datetime, timedelta
+        
+        now = datetime.utcnow()
+        future = now + timedelta(days=days)
+        
+        response = supabase.table("scheduled_posts")\
+            .select("*")\
+            .eq("user_id", user_id)\
+            .eq("status", "pending")\
+            .gte("scheduled_time", now.isoformat())\
+            .lte("scheduled_time", future.isoformat())\
+            .order("scheduled_time", desc=False)\
+            .execute()
+        
+        return response.data
+    except Exception as e:
+        st.error(f"Error fetching upcoming posts: {e}")
+        return []
+
+# ============================================
+# TOKEN MANAGEMENT FUNCTIONS
+# ============================================
+
+def save_linkedin_token(user_id, access_token, refresh_token=None, expires_in=None):
+    """Save LinkedIn token to database for offline access"""
+    supabase = init_supabase()
+    
+    # Calculate expiration timestamp
+    expires_at = None
+    if expires_in:
+        from datetime import datetime, timedelta
+        expires_at = (datetime.utcnow() + timedelta(seconds=int(expires_in))).isoformat()
+    
+    data = {
+        "user_id": user_id,
+        "provider": "linkedin",
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "expires_at": expires_at
+    }
+    
+    try:
+        # Upsert: insert or update if exists
+        response = supabase.table("user_connections").upsert(data).execute()
+        return response
+    except Exception as e:
+        print(f"Error saving token: {e}")
+        return None
+
+def get_linkedin_token(user_id):
+    """Get stored LinkedIn token for a user"""
+    supabase = init_supabase()
+    try:
+        response = supabase.table("user_connections")\
+            .select("*")\
+            .eq("user_id", user_id)\
+            .eq("provider", "linkedin")\
+            .single()\
+            .execute()
+        return response.data
+    except Exception as e:
+        # Only log if it's not simply "Row not found"
+        if "Row not found" not in str(e):
+            print(f"Error fetching token for user {user_id}: {e}")
+        return None

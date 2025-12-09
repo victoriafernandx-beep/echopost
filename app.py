@@ -22,6 +22,73 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# ============================================
+# AUTHENTICATION
+# ============================================
+from src import auth
+
+# Initialize auth state
+auth.init_session_state()
+user = auth.get_current_user()
+
+if not user:
+    # Sidebar logo
+    st.sidebar.image("assets/logo.png", width=200)
+    st.sidebar.markdown("---")
+    
+    # Login/Signup UI
+    st.title("🔐 Login no LinPost")
+    
+    tab_login, tab_signup = st.tabs(["Entrar", "Criar Conta"])
+    
+    with tab_login:
+        with st.form("login_form"):
+            email = st.text_input("Email")
+            password = st.text_input("Senha", type="password")
+            submitted = st.form_submit_button("Entrar", type="primary", use_container_width=True)
+            
+            if submitted:
+                success, msg = auth.login(email, password)
+                if success:
+                    st.success(msg)
+                    st.rerun()
+                else:
+                    st.error(msg)
+    
+    with tab_signup:
+        with st.form("signup_form"):
+            email_new = st.text_input("Email")
+            pass_new = st.text_input("Senha", type="password")
+            submitted_new = st.form_submit_button("Criar Conta", use_container_width=True)
+            
+            if submitted_new:
+                success, msg = auth.signup(email_new, pass_new)
+                if success:
+                    st.success(msg)
+                else:
+                    st.error(msg)
+    
+    st.info("💡 Dica: Se você acabou de configurar o Supabase, certifique-se que o provider 'Email' está habilitado.")
+    st.stop()  # Stop execution here if not logged in
+
+# Logout button in sidebar (bottom)
+with st.sidebar:
+    st.markdown("---")
+    st.write(f"👤 {user.email}")
+    if st.button("Sair", use_container_width=True):
+        auth.logout()
+        st.rerun()
+
+# Initialize scheduler for automatic post publishing
+try:
+    from src import scheduler
+    if 'scheduler_started' not in st.session_state:
+        scheduler.start_scheduler()
+        st.session_state['scheduler_started'] = True
+except Exception as e:
+    # Silently fail if scheduler can't start (e.g., missing dependencies)
+    pass
+
 # LinPost Premium Theme - New Brand Identity
 current_theme = {
     # Primary Colors
@@ -80,15 +147,7 @@ st.markdown(f"""
     
     h3 {{
         color: {current_theme['deep_black']} !important;
-        font-size: 1.25rem !important;
-        font-weight: 600 !important;
-        margin-bottom: 0.5rem !important;
-    }}
-    
-    p, label, .stMarkdown {{
-        color: {current_theme['graphite']} !important;
-        font-size: 0.9375rem !important;
-        line-height: 1.6 !important;
+        transform: translateY(-1px) !important;
     }}
     
     /* === SIDEBAR === */
@@ -98,53 +157,54 @@ st.markdown(f"""
         padding-top: 1.5rem;
     }}
     
-    /* Sidebar navigation items */
-    section[data-testid="stSidebar"] .stRadio > label {{
-        color: {current_theme['graphite']} !important;
-        font-weight: 500 !important;
-        padding: 0.625rem 1rem !important;
-        border-radius: 8px !important;
-        transition: all 0.2s ease !important;
+    /* Hide the radio button circle/icon using aggressive selectors */
+    section[data-testid="stSidebar"] [data-baseweb="radio"] > div:first-of-type,
+    section[data-testid="stSidebar"] [role="radiogroup"] > label > div:first-of-type {{
+        display: none !important;
     }}
     
-    section[data-testid="stSidebar"] .stRadio > label:hover {{
+    /* Container spacing */
+    section[data-testid="stSidebar"] [role="radiogroup"] {{
+        gap: 0.5rem;
+    }}
+
+    /* Style the label container */
+    section[data-testid="stSidebar"] [data-baseweb="radio"],
+    section[data-testid="stSidebar"] [role="radiogroup"] > label {{
+        background: transparent !important;
+        color: {current_theme['graphite']} !important;
+        font-weight: 500 !important;
+        padding: 0.75rem 1rem !important;
+        transition: all 0.2s ease !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+        cursor: pointer !important;
+        border-radius: 8px !important;
+        border-left: 3px solid transparent !important;
+    }}
+    
+    /* Hover state */
+    section[data-testid="stSidebar"] [data-baseweb="radio"]:hover,
+    section[data-testid="stSidebar"] [role="radiogroup"] > label:hover {{
         background: {current_theme['soft_gray']} !important;
         color: {current_theme['purple_neon']} !important;
     }}
-    
-    section[data-testid="stSidebar"] .stRadio > label[data-selected="true"] {{
+
+    /* Selected state - using aria-checked which Streamlit typically updates */
+    section[data-testid="stSidebar"] [data-baseweb="radio"][aria-checked="true"],
+    section[data-testid="stSidebar"] [role="radiogroup"] > label[data-checked="true"] {{
         background: linear-gradient(135deg, {current_theme['purple_neon']}15 0%, {current_theme['cyan_blue']}15 100%) !important;
         color: {current_theme['purple_neon']} !important;
         font-weight: 600 !important;
         border-left: 3px solid {current_theme['purple_neon']} !important;
     }}
-    
-    /* === BUTTONS === */
-    .stButton > button {{
-        background: {current_theme['cyan_blue']};
-        color: white !important;
-        border: none;
-        border-radius: 10px;
-        padding: 0.625rem 1.5rem;
-        font-weight: 600;
-        font-size: 0.9375rem !important;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 4px rgba(14, 165, 233, 0.25);
-    }}
-    
-    .stButton > button:hover {{
-        background: #0284C7;
-        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
-        transform: translateY(-1px);
-    }}
-    
-    .stButton > button:active {{
-        transform: translateY(0);
-    }}
-    
-    /* Form submit button (primary action) */
-    .stForm button[kind="primary"] {{
-        background: {current_theme['cyan_blue']} !important;
+
+    /* Ensure text color inherits correctly */
+    section[data-testid="stSidebar"] [data-baseweb="radio"] div,
+    section[data-testid="stSidebar"] [role="radiogroup"] label div {{
+        color: inherit !important;
     }}
     
     /* === INPUTS === */
@@ -173,82 +233,6 @@ st.markdown(f"""
     }}
     
     .stTextInput label, .stTextArea label, .stSelectbox label {{
-        color: {current_theme['deep_black']} !important;
-        font-size: 0.875rem !important;
-        font-weight: 600 !important;
-        margin-bottom: 0.5rem !important;
-    }}
-    
-    /* === CARDS === */
-    .post-card {{
-        background: white;
-        border: 1px solid {current_theme['border_gray']};
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-        transition: all 0.2s ease;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    }}
-    
-    .post-card:hover {{
-        border-color: {current_theme['purple_neon']};
-        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
-        transform: translateY(-2px);
-    }}
-    
-    .metric-card {{
-        background: white;
-        border: 1px solid {current_theme['border_gray']};
-        border-radius: 12px;
-        padding: 1.5rem;
-        min-height: 140px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        transition: all 0.2s ease;
-    }}
-    
-    .metric-card:hover {{
-        border-color: {current_theme['light_lilac']};
-        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
-    }}
-    
-    /* === METRICS === */
-    div[data-testid="stMetricValue"] {{
-        color: {current_theme['deep_black']} !important;
-        font-size: 2rem !important;
-        font-weight: 700 !important;
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
-    }}
-    
-    div[data-testid="stMetricLabel"] {{
-        font-size: 0.8125rem !important;
-        color: {current_theme['graphite']} !important;
-        font-weight: 600 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.05em !important;
-    }}
-    
-    /* === SPECIAL ELEMENTS === */
-    .post-topic {{
-        color: {current_theme['purple_neon']};
-        font-weight: 600;
-        font-size: 1.0625rem;
-        margin-bottom: 0.5rem;
-    }}
-    
-    .hashtag-pill {{
-        background: {current_theme['purple_neon']}15;
-        color: {current_theme['purple_neon']};
-        padding: 0.375rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.8125rem;
-        font-weight: 600;
-        margin-right: 0.5rem;
-        display: inline-block;
-        border: 1px solid {current_theme['purple_neon']}30;
     }}
     
     /* === MOBILE PREVIEW === */
@@ -340,6 +324,7 @@ with st.sidebar:
 page = st.sidebar.radio("Navegação", [
     "🏠 Home", 
     "✨ Gerador de Posts", 
+    "📅 Agendamento",
     "🎙️ Criar de Mídia", 
     "📡 News Radar", 
     "⚙️ Configurações"
@@ -449,15 +434,15 @@ if page == "🏠 Home":
     for idx, insight in enumerate(insights):
         with cols_insights[idx]:
             # Professional styling: White card with colored left border
-            border_color = "#10b981" if insight['type'] == "positive" else "#f59e0b" if insight['type'] == "tip" else "#3b82f6"
+            border_color = current_theme['success'] if insight['type'] == "positive" else current_theme['warning'] if insight['type'] == "tip" else current_theme['cyan_blue']
             
             st.markdown(f"""
             <div class="post-card" style="border-left: 4px solid {border_color}; padding: 1.25rem; height: 100%;">
                 <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
                     <span style="font-size: 1.25rem; margin-right: 0.5rem;">{insight['icon']}</span>
-                    <span style="font-weight: 600; color: {current_theme['text_main']};">{insight['title']}</span>
+                    <span style="font-weight: 600; color: {current_theme['deep_black']};">{insight['title']}</span>
                 </div>
-                <div style="font-size: 0.9rem; color: {current_theme['text_sec']}; line-height: 1.5;">{insight['description']}</div>
+                <div style="font-size: 0.9rem; color: {current_theme['graphite']}; line-height: 1.5;">{insight['description']}</div>
             </div>
             """, unsafe_allow_html=True)
     
@@ -528,7 +513,7 @@ if page == "🏠 Home":
     # Search and Filter Section
     st.markdown("### 🔍 Buscar Posts")
     
-    user_id = "test_user"
+    user_id = st.session_state.user.id
     
     # Search and filter controls
     col_search, col_tags, col_fav = st.columns([3, 2, 1])
@@ -705,14 +690,36 @@ elif page == "✨ Gerador de Posts":
                     if 'last_post' in st.session_state:
                         st.session_state['last_post'] = f"{phrase}\n\n{st.session_state.get('last_post', '')}"
                         st.rerun()
+    
+    # Post Generation Form
+    with st.form(key="post_generator_form", clear_on_submit=False):
+        st.markdown(f"""
+        <div style='margin-bottom: 0.75rem;'>
+            <span style='color: {current_theme['deep_black']}; font-size: 0.875rem; font-weight: 600;'>
+                💡 Sobre o que você quer escrever?
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            topic = st.text_input(
+                "topic",
+                value="",
+                placeholder="Ex.: Como IA está mudando o marketing, experiência do cliente em 2025, aprendizados da semana...",
+                label_visibility="collapsed"
+            )
+        
+        with col2:
             tone = st.selectbox(
-                "tone",
-                ["Profissional", "Casual", "Inspiracional"],
+                "Tom do post",
+                ["Profissional", "Casual inteligente", "Inspirador", "Direto e provocativo", "Storytelling humano"],
                 label_visibility="collapsed"
             )
         
         # Submit button
-        submitted = st.form_submit_button("🚀 Gerar Post", use_container_width=True)
+        submitted = st.form_submit_button("🚀 Gerar Post", use_container_width=True, type="primary")
     
     # Process form submission
     if submitted:
@@ -779,7 +786,7 @@ elif page == "✨ Gerador de Posts":
             st.markdown("### 📱 Preview Mobile")
             
             # Define user_id for preview
-            user_id = "test_user"
+            user_id = st.session_state.user.id
             
             # Content score
             score, feedback = ai_helpers.score_content(content)
@@ -821,81 +828,26 @@ elif page == "✨ Gerador de Posts":
             st.markdown(f"""
             <div class="mobile-preview-container">
                 <div class="mobile-notch"></div>
-                <div style="background: white; min-height: 500px; padding-top: 20px;">
-                    <!-- Header -->
-                    <div style="padding: 12px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; justify-content: space-between;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div style="width: 32px; height: 32px; border-radius: 50%; background: #e5e7eb; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666;">
-                                👤
-                            </div>
-                            <div style="background: #eef3f8; padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
-                                <span style="color: #0a66c2; font-size: 14px;">🔍</span>
-                                <span style="color: #666; font-size: 12px;">Pesquisar</span>
-                            </div>
+                <div style="padding: 2.5rem 1.25rem 1.5rem 1.25rem; height: 100%; overflow-y: auto; font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+                    <!-- Fake Header -->
+                    <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                        <div style="width: 32px; height: 32px; background: #e5e7eb; border-radius: 50%; margin-right: 0.5rem;"></div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.8rem; color: #374151;">Você</div>
+                            <div style="font-size: 0.7rem; color: #6b7280;">Agora • 🌐</div>
                         </div>
-                        <div style="color: #666;">💬</div>
                     </div>
                     
-                    <!-- Post -->
-                    <div style="padding: 12px;">
-                        <!-- User Info -->
-                        <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
-                            <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px; margin-right: 10px; flex-shrink: 0;">
-                                {user_id[0].upper() if user_id else 'U'}
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600; color: #1a1a1a; font-size: 14px; line-height: 1.2;">
-                                    {st.session_state.get('linkedin_user', {}).get('name', 'Seu Nome')}
-                                </div>
-                                <div style="font-size: 12px; color: #666; line-height: 1.2; margin-top: 2px;">
-                                    {st.session_state.get('linkedin_user', {}).get('headline', 'Criador de Conteúdo | LinPost User')}
-                                </div>
-                                <div style="font-size: 11px; color: #666; margin-top: 2px;">
-                                    1 h • 🌐
-                                </div>
-                            </div>
-                            <div style="color: #666; font-weight: bold;">...</div>
-                        </div>
-                        
-                        <!-- Content -->
-                        <div style="color: #1a1a1a; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; font-size: 14px; margin-bottom: 12px;">
-                            {escaped_content}
-                        </div>
-                        
-                        <!-- Engagement Stats -->
-                        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f3f4f6; padding-top: 8px; margin-bottom: 8px;">
-                            <div style="display: flex; align-items: center; gap: 4px;">
-                                <span style="font-size: 12px;">👍 👏 ❤️</span>
-                                <span style="font-size: 12px; color: #666;">84</span>
-                            </div>
-                            <div style="font-size: 12px; color: #666;">
-                                12 comentários • 4 compartilhamentos
-                            </div>
-                        </div>
-                        
-                        <!-- Action Buttons -->
-                        <div style="display: flex; justify-content: space-between; border-top: 1px solid #f3f4f6; padding-top: 12px;">
-                            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #666;">
-                                <span style="font-size: 16px;">👍</span>
-                                <span style="font-size: 12px; font-weight: 600;">Gostei</span>
-                            </div>
-                            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #666;">
-                                <span style="font-size: 16px;">💬</span>
-                                <span style="font-size: 12px; font-weight: 600;">Comentar</span>
-                            </div>
-                            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #666;">
-                                <span style="font-size: 16px;">🔄</span>
-                                <span style="font-size: 12px; font-weight: 600;">Repostar</span>
-                            </div>
-                            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #666;">
-                                <span style="font-size: 16px;">📤</span>
-                                <span style="font-size: 12px; font-weight: 600;">Enviar</span>
-                            </div>
-                        </div>
+                    <!-- Content -->
+                    <div style="color: #1f2937; font-size: 0.875rem; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word;">
+{escaped_content}
+                    </div>
+                    
+                    <!-- Fake Actions -->
+                    <div style="margin-top: 1rem; border-top: 1px solid #f3f4f6; padding-top: 0.75rem; display: flex; justify-content: space-between; color: #6b7280; font-size: 1rem; padding-left: 0.5rem; padding-right: 0.5rem;">
+                        <span>👍</span> <span>💬</span> <span>🔁</span> <span>✈️</span>
                     </div>
                 </div>
-                <!-- Home Indicator -->
-                <div style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 120px; height: 4px; background: #1a1a1a; border-radius: 2px;"></div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -903,9 +855,219 @@ elif page == "✨ Gerador de Posts":
         
         st.markdown("---")
         
+        # ============================================
+        # ADVANCED AI FEATURES
+        # ============================================
+        from src import advanced_ai
+        
+        st.markdown("### 🤖 Análise Avançada com IA")
+        
+        # Create tabs for different AI features
+        tab1, tab2, tab3, tab4 = st.tabs([
+            "😊 Sentimento", 
+            "🎭 Variações", 
+            "💡 Sugestões", 
+            "📈 Engajamento"
+        ])
+        
+        # TAB 1: Sentiment Analysis
+        with tab1:
+            st.markdown("#### Análise de Sentimento")
+            
+            with st.spinner("Analisando tom emocional..."):
+                sentiment_result = advanced_ai.analyze_sentiment(content)
+            
+            # Display sentiment with colored badge
+            sentiment_colors = {
+                'positive': '#22C55E',
+                'neutral': '#6B7280',
+                'negative': '#EF4444'
+            }
+            sentiment_labels = {
+                'positive': 'Positivo',
+                'neutral': 'Neutro',
+                'negative': 'Negativo'
+            }
+            sentiment_icons = {
+                'positive': '😊',
+                'neutral': '😐',
+                'negative': '😢'
+            }
+            
+            sentiment = sentiment_result['sentiment']
+            color = sentiment_colors.get(sentiment, '#6B7280')
+            label = sentiment_labels.get(sentiment, 'Neutro')
+            icon = sentiment_icons.get(sentiment, '😐')
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown(f"""
+                <div style="
+                    background: {color}15;
+                    border-left: 4px solid {color};
+                    padding: 1.5rem;
+                    border-radius: 8px;
+                ">
+                    <div style="font-size: 2.5rem; text-align: center; margin-bottom: 0.5rem;">{icon}</div>
+                    <div style="font-size: 1.25rem; font-weight: 600; text-align: center; color: {color};">{label}</div>
+                    <div style="font-size: 0.875rem; text-align: center; color: #6B7280; margin-top: 0.25rem;">
+                        Score: {sentiment_result['score']}/100
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col2:
+                st.markdown(f"""
+                <div style="
+                    background: {current_theme['purple_neon']}15;
+                    border-left: 4px solid {current_theme['purple_neon']};
+                    padding: 1.5rem;
+                    border-radius: 8px;
+                ">
+                    <div style="font-size: 0.875rem; font-weight: 600; color: {current_theme['deep_black']}; margin-bottom: 0.5rem;">
+                        Emoção Detectada
+                    </div>
+                    <div style="font-size: 1.125rem; font-weight: 600; color: {current_theme['purple_neon']};">
+                        {sentiment_result['emotion'].capitalize()}
+                    </div>
+                    <div style="font-size: 0.75rem; color: #6B7280; margin-top: 0.5rem;">
+                        Confiança: {int(sentiment_result['confidence'] * 100)}%
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        # TAB 2: Post Variations
+        with tab2:
+            st.markdown("#### Gerar Variações do Post")
+            st.markdown("Crie versões alternativas com diferentes estilos de escrita.")
+            
+            if st.button("🎭 Gerar 3 Variações", use_container_width=True, key="generate_variations"):
+                with st.spinner("Gerando variações criativas..."):
+                    variations = advanced_ai.generate_variations(content, st.session_state['last_topic'], num_variations=3)
+                    st.session_state['variations'] = variations
+            
+            if 'variations' in st.session_state and st.session_state['variations']:
+                st.markdown("---")
+                for idx, variation in enumerate(st.session_state['variations']):
+                    with st.expander(f"📝 {variation['style']}", expanded=(idx == 0)):
+                        st.markdown(variation['content'])
+                        
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            if st.button(f"✅ Usar esta versão", key=f"use_var_{idx}", use_container_width=True):
+                                st.session_state['last_post'] = variation['content']
+                                st.rerun()
+                        with col2:
+                            if st.button(f"📋 Copiar", key=f"copy_var_{idx}", use_container_width=True):
+                                st.code(variation['content'], language=None)
+                                st.toast("Variação copiada!", icon="📋")
+        
+        # TAB 3: Real-time Suggestions
+        with tab3:
+            st.markdown("#### Sugestões de Melhoria")
+            
+            suggestions = advanced_ai.get_realtime_suggestions(content)
+            
+            if suggestions:
+                for suggestion in suggestions:
+                    if suggestion['type'] == 'warning':
+                        st.warning(suggestion['message'])
+                    elif suggestion['type'] == 'tip':
+                        st.info(suggestion['message'])
+                    elif suggestion['type'] == 'success':
+                        st.success(suggestion['message'])
+            else:
+                st.success("✅ Seu post está ótimo! Nenhuma sugestão no momento.")
+        
+        # TAB 4: Engagement Prediction
+        with tab4:
+            st.markdown("#### Previsão de Engajamento")
+            
+            engagement = advanced_ai.predict_engagement(content, st.session_state['last_topic'])
+            
+            # Overall score with color
+            score = engagement['score']
+            level = engagement['level']
+            
+            level_colors = {
+                'baixo': '#EF4444',
+                'médio': '#F59E0B',
+                'alto': '#22C55E',
+                'viral': '#8B5CF6'
+            }
+            level_icons = {
+                'baixo': '📉',
+                'médio': '📊',
+                'alto': '📈',
+                'viral': '🚀'
+            }
+            
+            level_color = level_colors.get(level, '#6B7280')
+            level_icon = level_icons.get(level, '📊')
+            
+            st.markdown(f"""
+            <div style="
+                background: {level_color}15;
+                border: 2px solid {level_color};
+                padding: 1.5rem;
+                border-radius: 12px;
+                text-align: center;
+                margin-bottom: 1rem;
+            ">
+                <div style="font-size: 3rem; margin-bottom: 0.5rem;">{level_icon}</div>
+                <div style="font-size: 2rem; font-weight: 700; color: {level_color};">{score}/100</div>
+                <div style="font-size: 1rem; font-weight: 600; color: {current_theme['deep_black']}; margin-top: 0.5rem;">
+                    Potencial: {level.upper()}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Breakdown of factors
+            st.markdown("**Análise Detalhada:**")
+            
+            factors = engagement['factors']
+            for factor_name, factor_score in factors.items():
+                factor_labels = {
+                    'length': 'Tamanho',
+                    'structure': 'Estrutura',
+                    'hooks': 'Gancho Inicial',
+                    'cta': 'Call-to-Action',
+                    'hashtags': 'Hashtags'
+                }
+                
+                label = factor_labels.get(factor_name, factor_name)
+                
+                # Progress bar color based on score
+                if factor_score >= 80:
+                    bar_color = '#22C55E'
+                elif factor_score >= 60:
+                    bar_color = '#F59E0B'
+                else:
+                    bar_color = '#EF4444'
+                
+                st.markdown(f"""
+                <div style="margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                        <span style="font-size: 0.875rem; font-weight: 600;">{label}</span>
+                        <span style="font-size: 0.875rem; color: {bar_color}; font-weight: 600;">{factor_score}/100</span>
+                    </div>
+                    <div style="background: #E5E7EB; border-radius: 10px; height: 8px; overflow: hidden;">
+                        <div style="background: {bar_color}; width: {factor_score}%; height: 100%; border-radius: 10px;"></div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # Recommendations
+            if engagement['recommendations']:
+                st.markdown("**💡 Recomendações:**")
+                for rec in engagement['recommendations']:
+                    st.markdown(f"- {rec}")
+        
+        st.markdown("---")
+        
         # Tags selector
         st.markdown("#### 🏷️ Adicionar Tags")
-        user_id = "test_user"
+        user_id = st.session_state.user.id
         existing_tags = database.get_all_tags(user_id)
         post_tags = st.multiselect(
             "Selecione ou crie tags para organizar este post:",
@@ -949,6 +1111,11 @@ elif page == "✨ Gerador de Posts":
             if st.button("📋 Copiar para Clipboard", use_container_width=True):
                 st.code(content, language=None)
                 st.info("👆 Copie o texto acima!")
+
+
+elif page == "📅 Agendamento":
+    from src import scheduling_ui
+    scheduling_ui.render_scheduling_page(current_theme)
 
 
 elif page == "🎙️ Criar de Mídia":
