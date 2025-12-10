@@ -101,12 +101,6 @@ class PostScheduler:
                 print(f"SCHEDULER: Found {len(posts_to_publish)} posts ready to publish")
             
             for post in posts_to_publish:
-            print(f"SCHEDULER: Query (<= Now) returned {len(posts_to_publish)} posts")
-            
-            if len(posts_to_publish) > 0:
-                print(f"SCHEDULER: Found {len(posts_to_publish)} posts ready to publish")
-            
-            for post in posts_to_publish:
                 print(f"SCHEDULER: Processing post {post['id']}")
                 self.publish_scheduled_post(post['id'], post)
                 
