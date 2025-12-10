@@ -1475,12 +1475,38 @@ As chaves de API (OpenAI, LinkedIn, Supabase) são gerenciadas de forma segura a
     st.markdown("### 🛠️ Área de Diagnóstico")
     if st.button("🐛 Debug: Forçar Execução do Scheduler", use_container_width=True):
         st.info("Iniciando verificação manual...")
+        
+        # Log capturing container
+        log_container = st.empty()
+        logs = []
+        
         try:
             from src import scheduler
-            # Run the logic
-            scheduler_instance = scheduler.get_scheduler()
-            scheduler_instance.check_and_publish_posts()
-            st.success("Verificação concluída! Verifique se os posts mudaram de status.")
+            import io
+            from contextlib import redirect_stdout, redirect_stderr
+            
+            # Capture output
+            f = io.StringIO()
+            with redirect_stdout(f), redirect_stderr(f):
+                try:
+                    scheduler_instance = scheduler.get_scheduler()
+                    print("--- INICIANDO DIAGNÓSTICO ---")
+                    scheduler_instance.check_and_publish_posts()
+                    print("--- FIM DO DIAGNÓSTICO ---")
+                except Exception as inner_e:
+                    print(f"ERRO CRÍTICO: {inner_e}")
+                    import traceback
+                    traceback.print_exc()
+            
+            # Show logs
+            output = f.getvalue()
+            if output:
+                st.text_area("Logs da Execução:", value=output, height=300)
+            else:
+                st.warning("Nenhum log gerado. O scheduler rodou silenciosamente?")
+                
+            st.success("Verificação concluída! Leia os logs acima.")
+            
         except Exception as e:
             st.error(f"Erro ao executar scheduler: {e}")
             st.exception(e)
