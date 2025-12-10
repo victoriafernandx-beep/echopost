@@ -71,12 +71,26 @@ class PostScheduler:
             # DEBUG: Log environment
             import streamlit as st
             has_service_key = "SUPABASE_SERVICE_KEY" in st.secrets
+            url = st.secrets["SUPABASE_URL"]
+            masked_url = url[:20] + "..." if url else "None"
             print(f"SCHEDULER: Has Service Key? {has_service_key}")
+            print(f"SCHEDULER: DB URL: {masked_url}")
             
             from datetime import datetime
             now = datetime.utcnow().isoformat()
-            print(f"SCHEDULER: Checking for posts <= {now}")
+            print(f"SCHEDULER: Now (UTC): {now}")
             
+            # 1. Check ALL pending posts (no time filter) to verify DB connection/RLS
+            all_pending = supabase.table("scheduled_posts")\
+                .select("id, scheduled_time, topic")\
+                .eq("status", "pending")\
+                .execute()
+                
+            print(f"SCHEDULER: Total Pending (Any time): {len(all_pending.data)}")
+            if len(all_pending.data) > 0:
+                print(f"SCHEDULER: Sample Post Time: {all_pending.data[0]['scheduled_time']}")
+            
+            # 2. Run actual query
             response = supabase.table("scheduled_posts")\
                 .select("*")\
                 .eq("status", "pending")\
@@ -84,7 +98,7 @@ class PostScheduler:
                 .execute()
                 
             posts_to_publish = response.data
-            print(f"SCHEDULER: Query returned {len(posts_to_publish)} posts")
+            print(f"SCHEDULER: Query (<= Now) returned {len(posts_to_publish)} posts")
             
             if len(posts_to_publish) > 0:
                 print(f"SCHEDULER: Found {len(posts_to_publish)} posts ready to publish")
