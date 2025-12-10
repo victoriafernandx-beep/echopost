@@ -127,7 +127,6 @@ class PostScheduler:
             
             # Attempt to publish to LinkedIn
             try:
-                # Fetch user token from DB
                 # Fetch user token from DB using Service Role (to bypass RLS)
                 supabase_admin = database.get_supabase_client(use_service_role=True)
                 
@@ -153,6 +152,7 @@ class PostScheduler:
                     }
                     
                     try:
+                        print(f"SCHEDULER: Fetching LinkedIn profile for user {user_id}...")
                         profile_resp = requests.get("https://api.linkedin.com/v2/userinfo", headers=headers)
                         profile_resp.raise_for_status()
                         profile_data = profile_resp.json()
@@ -177,6 +177,7 @@ class PostScheduler:
                         
                         headers['Content-Type'] = 'application/json'
                         
+                        print(f"SCHEDULER: Sending post to LinkedIn...")
                         pub_resp = requests.post(
                             "https://api.linkedin.com/v2/ugcPosts",
                             headers=headers,
@@ -191,6 +192,8 @@ class PostScheduler:
                         except:
                             linkedin_post_id = "published"
 
+                        print(f"SCHEDULER: SUCCESS! LinkedIn ID: {linkedin_post_id}")
+
                         # Update status using admin client
                         supabase_admin.table("scheduled_posts").update({
                             "status": "published",
@@ -199,7 +202,6 @@ class PostScheduler:
                             "updated_at": datetime.utcnow().isoformat()
                         }).eq("id", post_id).execute()
                         logger.info(f"Successfully published post {post_id}")
-                        self._notify_user(user_id, "success", f"Post publicado com sucesso!")
                         
                     except Exception as api_error:
                         # API Error
@@ -210,6 +212,7 @@ class PostScheduler:
                              except:
                                  pass
                                  
+                         print(f"SCHEDULER: LinkedIn API Error: {error_msg}")
                          logger.error(f"LinkedIn API Error: {error_msg}")
                          database.update_scheduled_post_status(
                             post_id, 
@@ -219,17 +222,18 @@ class PostScheduler:
                     
                 else:
                     # No token found
+                    print(f"SCHEDULER: No LinkedIn token found for user {user_id}")
                     logger.warning(f"No LinkedIn token found for user {user_id}")
                     database.update_scheduled_post_status(
                         post_id, 
-                        "failed",
+                        "failed", 
                         error_message="Token não encontrado. Por favor, reconecte o LinkedIn."
                     )
-                    self._notify_user(user_id, "error", "Falha ao publicar: Token não encontrado")
                     
             except Exception as e:
                 # Error during publishing logic
                 error_msg = str(e)
+                print(f"SCHEDULER: Exception in publishing logic: {error_msg}")
                 logger.error(f"Exception logic publishing post {post_id}: {error_msg}")
                 database.update_scheduled_post_status(
                     post_id, 
@@ -238,6 +242,7 @@ class PostScheduler:
                 )
                 
         except Exception as e:
+            print(f"SCHEDULER: Critical error in publish_scheduled_post: {e}")
             logger.error(f"Error in publish_scheduled_post: {e}")
     
     def _notify_user(self, user_id: str, notification_type: str, message: str):
