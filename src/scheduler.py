@@ -80,17 +80,15 @@ class PostScheduler:
             now = datetime.utcnow().isoformat()
             print(f"SCHEDULER: Now (UTC): {now}")
             
-            # 1. Check ALL pending posts (no time filter) to verify DB connection/RLS
-            all_pending = supabase.table("scheduled_posts")\
-                .select("id, scheduled_time, topic")\
-                .eq("status", "pending")\
-                .execute()
-                
-            print(f"SCHEDULER: Total Pending (Any time): {len(all_pending.data)}")
-            if len(all_pending.data) > 0:
-                print(f"SCHEDULER: Sample Post Time: {all_pending.data[0]['scheduled_time']}")
+            # 1. Nuclear Option: Check EVERYTHING in the table
+            print("SCHEDULER: NUCLEAR QUERY - No filters")
+            all_rows = supabase.table("scheduled_posts").select("*").limit(5).execute()
             
-            # 2. Run actual query
+            print(f"SCHEDULER: Total Rows (Limit 5): {len(all_rows.data)}")
+            for i, row in enumerate(all_rows.data):
+                print(f"Row {i}: ID={row.get('id')} Status='{row.get('status')}' Time='{row.get('scheduled_time')}'")
+
+            # 2. Run actual query (for continuity)
             response = supabase.table("scheduled_posts")\
                 .select("*")\
                 .eq("status", "pending")\
