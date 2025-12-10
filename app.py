@@ -31,6 +31,10 @@ from src import auth
 auth.init_session_state()
 user = auth.get_current_user()
 
+# Initialize Scheduler
+from src import scheduler
+scheduler.start_scheduler()
+
 if not user:
     # Sidebar logo
     st.sidebar.image("assets/logo.png", width=200)

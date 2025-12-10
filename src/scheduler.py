@@ -79,12 +79,15 @@ class PostScheduler:
                 
             posts_to_publish = response.data
             
-            logger.info(f"Found {len(posts_to_publish)} posts ready to publish")
+            if len(posts_to_publish) > 0:
+                print(f"SCHEDULER: Found {len(posts_to_publish)} posts ready to publish")
             
             for post in posts_to_publish:
+                print(f"SCHEDULER: Processing post {post['id']}")
                 self.publish_scheduled_post(post['id'], post)
                 
         except Exception as e:
+            print(f"SCHEDULER ERROR checking posts: {e}")
             logger.error(f"Error checking posts to publish: {e}")
     
     def publish_scheduled_post(self, post_id: str, post_data: dict):
