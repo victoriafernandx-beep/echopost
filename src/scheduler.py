@@ -70,12 +70,30 @@ class PostScheduler:
             
             # DEBUG: Log environment
             import streamlit as st
+            import base64
+            import json
+            
             has_service_key = "SUPABASE_SERVICE_KEY" in st.secrets
             url = st.secrets["SUPABASE_URL"]
             masked_url = url[:20] + "..." if url else "None"
             print(f"SCHEDULER: Has Service Key? {has_service_key}")
             print(f"SCHEDULER: DB URL: {masked_url}")
             
+            # Verify Key Role
+            try:
+                if has_service_key:
+                    key = st.secrets["SUPABASE_SERVICE_KEY"]
+                    # Naively decode JWT (middle part)
+                    parts = key.split('.')
+                    if len(parts) > 1:
+                        payload = base64.b64decode(parts[1] + "==").decode('utf-8')
+                        claims = json.loads(payload)
+                        print(f"SCHEDULER: Key Role: {claims.get('role', 'unknown')}")
+                    else:
+                        print("SCHEDULER: Key format unknown (not JWT?)")
+            except Exception as e:
+                print(f"SCHEDULER: Error checking key role: {e}")
+
             from datetime import datetime
             now = datetime.utcnow().isoformat()
             print(f"SCHEDULER: Now (UTC): {now}")
