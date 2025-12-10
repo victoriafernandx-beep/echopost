@@ -1469,5 +1469,17 @@ As chaves de API (OpenAI, LinkedIn, Supabase) são gerenciadas de forma segura a
 </div>
 </div>
 </div>
-""", unsafe_allow_html=True)
+    st.markdown("---")
+    st.markdown("### 🛠️ Área de Diagnóstico")
+    if st.button("🐛 Debug: Forçar Execução do Scheduler", use_container_width=True):
+        st.info("Iniciando verificação manual...")
+        try:
+            from src import scheduler
+            # Run the logic
+            scheduler_instance = scheduler.get_scheduler()
+            scheduler_instance.check_and_publish_posts()
+            st.success("Verificação concluída! Verifique se os posts mudaram de status.")
+        except Exception as e:
+            st.error(f"Erro ao executar scheduler: {e}")
+            st.exception(e)
 
