@@ -1469,6 +1469,8 @@ As chaves de API (OpenAI, LinkedIn, Supabase) são gerenciadas de forma segura a
 </div>
 </div>
 </div>
+""", unsafe_allow_html=True)
+    
     st.markdown("---")
     st.markdown("### 🛠️ Área de Diagnóstico")
     if st.button("🐛 Debug: Forçar Execução do Scheduler", use_container_width=True):
