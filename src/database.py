@@ -160,7 +160,7 @@ def create_scheduled_post(user_id, content, topic, scheduled_time, timezone="UTC
         "content": content,
         "topic": topic,
         "tags": tags or [],
-        "scheduled_time": scheduled_time.isoformat(),
+        "scheduled_time": scheduled_time if isinstance(scheduled_time, str) else scheduled_time.isoformat(),
         "timezone": timezone,
         "status": "pending"
     }
