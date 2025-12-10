@@ -99,12 +99,12 @@ class PostScheduler:
             print(f"SCHEDULER: Now (UTC): {now}")
             
             # 1. Nuclear Option: Check EVERYTHING in the table
-            print("SCHEDULER: NUCLEAR QUERY - No filters")
-            all_rows = supabase.table("scheduled_posts").select("*").limit(5).execute()
+            print("SCHEDULER: NUCLEAR QUERY - Pending Only")
+            all_rows = supabase.table("scheduled_posts").select("id, status, scheduled_time").eq("status", "pending").execute()
             
-            print(f"SCHEDULER: Total Rows (Limit 5): {len(all_rows.data)}")
+            print(f"SCHEDULER: Total Pending Rows: {len(all_rows.data)}")
             for i, row in enumerate(all_rows.data):
-                print(f"Row {i}: ID={row.get('id')} Status='{row.get('status')}' Time='{row.get('scheduled_time')}'")
+                print(f"Row {i}: ID={row.get('id')} Time='{row.get('scheduled_time')}'")
 
             # 2. Run actual query (for continuity)
             response = supabase.table("scheduled_posts")\
