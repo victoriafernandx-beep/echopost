@@ -98,13 +98,23 @@ class PostScheduler:
             now = datetime.utcnow().isoformat()
             print(f"SCHEDULER: Now (UTC): {now}")
             
-            # 1. Nuclear Option: Check EVERYTHING in the table
-            print("SCHEDULER: NUCLEAR QUERY - Pending Only")
-            all_rows = supabase.table("scheduled_posts").select("id, status, scheduled_time").eq("status", "pending").execute()
+            # 1. Nuclear Option: Analyze Statuses
+            print("SCHEDULER: NUCLEAR QUERY - Analysis")
             
-            print(f"SCHEDULER: Total Pending Rows: {len(all_rows.data)}")
-            for i, row in enumerate(all_rows.data):
-                print(f"Row {i}: ID={row.get('id')} Time='{row.get('scheduled_time')}'")
+            # Check all non-failed rows
+            active_rows = supabase.table("scheduled_posts").select("id, status, scheduled_time").neq("status", "failed").limit(10).execute()
+            
+            print(f"SCHEDULER: Non-Failed Rows Found: {len(active_rows.data)}")
+            for i, row in enumerate(active_rows.data):
+                print(f"Row {i}: ID={row.get('id')} Status='{row.get('status')}' Time='{row.get('scheduled_time')}'")
+                
+            # Check for ANY pending variation
+            try:
+                # Try case insensitive search if pending is capitalized (unlikely but possible)
+                pending_rows = supabase.table("scheduled_posts").select("id").ilike("status", "pending").execute()
+                print(f"SCHEDULER: 'pending' (Case Insensitive) Count: {len(pending_rows.data)}")
+            except:
+                print("SCHEDULER: ilike not supported or error")
 
             # 2. Run actual query (for continuity)
             response = supabase.table("scheduled_posts")\
