@@ -19,7 +19,14 @@ def get_linkedin_credentials():
             "client_secret": st.secrets.get("LINKEDIN_CLIENT_SECRET", ""),
             "redirect_uri": st.secrets.get("LINKEDIN_REDIRECT_URI", "https://seu-app.streamlit.app")
         }
-    except:
+    except Exception as e:
+        print(f"DEBUG: Error loading LinkedIn credentials: {e}")
+        # Print keys to verify what was loaded
+        try:
+            print(f"DEBUG: Available keys: {list(st.secrets.keys())}")
+        except:
+            pass
+            
         return {
             "client_id": "",
             "client_secret": "",

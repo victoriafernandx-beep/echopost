@@ -10,7 +10,12 @@ import pytz
 def render_scheduling_page(current_theme):
     """Render the complete scheduling page"""
     
-    user_id = "test_user"  # Replace with actual user authentication
+    # user_id = "test_user"  # Replace with actual user authentication
+    if 'user' in st.session_state and st.session_state.user:
+        user_id = st.session_state.user.id
+    else:
+        st.error("Erro: Usuário não autenticado no agendamento.")
+        return
     
     # Hero Section
     st.markdown(f"""

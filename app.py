@@ -90,217 +90,198 @@ except Exception as e:
     pass
 
 # LinPost Premium Theme - New Brand Identity
+# LinPost Professional Blue Theme - New Corporate Identity
 current_theme = {
     # Primary Colors
-    "purple_neon": "#8B5CF6",      # Brand identity, icons, highlights
-    "cyan_blue": "#0EA5E9",        # Primary actions, buttons
-    "deep_black": "#0D0D0D",       # Main text
+    "purple_neon": "#0077B5",      # Brand identity (Blue Corporate) - kept key name for compatibility
+    "cyan_blue": "#0077B5",        # Primary actions (Blue Corporate)
+    "deep_black": "#2C3E50",       # Main text (Navy Blue)
     
     # Secondary Colors
-    "soft_gray": "#F3F4F6",        # Card backgrounds
-    "graphite": "#374151",         # Secondary text
-    "border_gray": "#E5E7EB",      # Borders, dividers
-    "light_lilac": "#C4B5FD",      # Subtle details
-    "light_blue": "#7DD3FC",       # Hover states
+    "soft_gray": "#F4F6F9",        # Background (Light Gray)
+    "graphite": "#2C3E50",         # Text (Navy Blue)
+    "border_gray": "#E5E7EB",      # Borders
+    "light_lilac": "#00BCD4",      # Highlight (Cyan Light) - kept key name compatibility
+    "light_blue": "#E1F5FE",       # Hover states
     
     # Feedback Colors
-    "success": "#22C55E",
-    "warning": "#FACC15",
-    "error": "#EF4444",
+    "success": "#00A36C",          # Green
+    "warning": "#FFC107",          # Yellow
+    "error": "#E74C3C",            # Red
     
     # Backgrounds
-    "bg_main": "#FFFFFF",
+    "bg_main": "#F4F6F9",
     "bg_sidebar": "#FFFFFF",
-    "card_bg": "#F9FAFB"
+    "card_bg": "#FFFFFF"
 }
 
 st.markdown(f"""
 <style>
-    /* LinPost Premium Design System */
+    /* LinPost Mobile-First Design System v2.0 */
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
     
-    /* === TYPOGRAPHY === */
+    /* === GLOBAL CANVAS === */
     .stApp {{
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        background-color: {current_theme['bg_main']};
+        background: linear-gradient(180deg, #E1F5FE 0%, #F0F9FF 30%, #FFFFFF 100%);
+        background-attachment: fixed;
     }}
     
+    .block-container {{
+        padding-top: 2rem !important;
+        padding-bottom: 5rem !important;
+        max-width: 800px !important; /* Mobile app feel width */
+    }}
+    
+    /* === TYPOGRAPHY === */
     h1, h2, h3 {{
         font-family: 'Plus Jakarta Sans', sans-serif !important;
+        color: {current_theme['deep_black']} !important;
     }}
     
     h1 {{
-        color: {current_theme['deep_black']} !important;
-        font-size: 2.125rem !important;
-        font-weight: 700 !important;
-        letter-spacing: -0.03em !important;
+        font-size: 2.25rem !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.04em !important;
         margin-bottom: 0.5rem !important;
+        background: linear-gradient(90deg, #0077B5 0%, #00A0DC 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }}
     
     h2 {{
-        color: {current_theme['deep_black']} !important;
-        font-size: 1.625rem !important;
-        font-weight: 600 !important;
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
         letter-spacing: -0.025em !important;
         margin-bottom: 0.75rem !important;
     }}
     
     h3 {{
-        color: {current_theme['deep_black']} !important;
-        transform: translateY(-1px) !important;
+        font-size: 1.25rem !important;
+        font-weight: 600 !important;
     }}
     
-    /* === SIDEBAR === */
+    /* === SIDEBAR (Modern & Minimal) === */
     section[data-testid="stSidebar"] {{
-        background: {current_theme['bg_sidebar']};
-        border-right: 1px solid {current_theme['border_gray']};
-        padding-top: 1.5rem;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-right: 1px solid rgba(229, 231, 235, 0.5);
     }}
     
-    /* Hide the radio button circle/icon using aggressive selectors */
+    /* Hide default radio buttons */
     section[data-testid="stSidebar"] [data-baseweb="radio"] > div:first-of-type,
     section[data-testid="stSidebar"] [role="radiogroup"] > label > div:first-of-type {{
         display: none !important;
     }}
     
-    /* Container spacing */
-    section[data-testid="stSidebar"] [role="radiogroup"] {{
-        gap: 0.5rem;
-    }}
-
-    /* Style the label container */
-    section[data-testid="stSidebar"] [data-baseweb="radio"],
+    /* Sidebar Navigation Items */
     section[data-testid="stSidebar"] [role="radiogroup"] > label {{
         background: transparent !important;
         color: {current_theme['graphite']} !important;
         font-weight: 500 !important;
-        padding: 0.75rem 1rem !important;
-        transition: all 0.2s ease !important;
-        margin: 0 !important;
-        display: flex !important;
-        align-items: center !important;
-        width: 100% !important;
-        cursor: pointer !important;
-        border-radius: 8px !important;
-        border-left: 3px solid transparent !important;
+        padding: 0.875rem 1rem !important;
+        margin: 0.25rem 0.5rem !important;
+        border-radius: 12px !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        border: 1px solid transparent !important;
     }}
     
-    /* Hover state */
-    section[data-testid="stSidebar"] [data-baseweb="radio"]:hover,
+    /* Sidebar Hover */
     section[data-testid="stSidebar"] [role="radiogroup"] > label:hover {{
-        background: {current_theme['soft_gray']} !important;
+        background-color: #F8FAFC !important;
         color: {current_theme['purple_neon']} !important;
+        transform: translateX(4px);
     }}
 
-    /* Selected state - using aria-checked which Streamlit typically updates */
+    /* Sidebar Active */
     section[data-testid="stSidebar"] [data-baseweb="radio"][aria-checked="true"],
     section[data-testid="stSidebar"] [role="radiogroup"] > label[data-checked="true"] {{
-        background: linear-gradient(135deg, {current_theme['purple_neon']}15 0%, {current_theme['cyan_blue']}15 100%) !important;
+        background-color: #E1F5FE !important;
         color: {current_theme['purple_neon']} !important;
-        font-weight: 600 !important;
-        border-left: 3px solid {current_theme['purple_neon']} !important;
-    }}
-
-    /* Ensure text color inherits correctly */
-    section[data-testid="stSidebar"] [data-baseweb="radio"] div,
-    section[data-testid="stSidebar"] [role="radiogroup"] label div {{
-        color: inherit !important;
+        font-weight: 700 !important;
+        border: 1px solid {current_theme['purple_neon']}20 !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 119, 181, 0.1) !important;
     }}
     
-    /* === INPUTS === */
+    /* === CARDS (Soft Shadow & 16px Radius) === */
+    .post-card, .metric-card {{
+        background-color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 4px 10px -2px rgba(0, 0, 0, 0.02);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }}
+    
+    .post-card:hover {{
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px -5px rgba(0, 119, 181, 0.15);
+        border-color: {current_theme['purple_neon']}40;
+    }}
+    
+    /* === INPUTS (Pill/Rounded) === */
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea,
     .stSelectbox > div > div > div {{
         background-color: white !important;
         color: {current_theme['deep_black']} !important;
-        border-radius: 8px !important;
-        border: 1.5px solid {current_theme['border_gray']} !important;
-        font-size: 0.9375rem !important;
-        padding: 0.75rem 1rem !important;
-        transition: all 0.2s ease !important;
+        border-radius: 12px !important;
+        border: 1px solid #E2E8F0 !important;
+        padding: 0.875rem 1rem !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
     }}
     
     .stTextInput > div > div > input:focus,
     .stTextArea > div > div > textarea:focus {{
         border-color: {current_theme['purple_neon']} !important;
-        box-shadow: 0 0 0 3px {current_theme['purple_neon']}20 !important;
+        box-shadow: 0 0 0 4px rgba(0, 119, 181, 0.1) !important;
     }}
-    
-    .stTextInput > div > div > input::placeholder,
-    .stTextArea > div > div > textarea::placeholder {{
-        color: #9CA3AF !important;
-        opacity: 1 !important;
-    }}
-    
-    .stTextInput label, .stTextArea label, .stSelectbox label {{
-    }}
-    
-    /* === MOBILE PREVIEW === */
-    .mobile-preview-container {{
-        border: 10px solid {current_theme['deep_black']};
-        border-radius: 28px;
-        overflow: hidden;
-        max-width: 300px;
-        margin: 0 auto;
-        background: white;
-        position: relative;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    }}
-    
-    .mobile-notch {{
-        position: absolute;
-        top: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 90px;
-        height: 18px;
-        background: {current_theme['deep_black']};
-        border-bottom-left-radius: 10px;
-        border-bottom-right-radius: 10px;
-        z-index: 10;
-    }}
-    
-    /* === EXPANDER === */
-    .streamlit-expanderHeader {{
-        background: {current_theme['soft_gray']} !important;
-        border-radius: 8px !important;
+
+    /* === BUTTONS (Gradient & Floating) === */
+    button[kind="primary"] {{
+        background: linear-gradient(135deg, {current_theme['purple_neon']} 0%, #0091EA 100%) !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 0.75rem 1.5rem !important;
         font-weight: 600 !important;
+        letter-spacing: 0.02em !important;
+        box-shadow: 0 10px 20px -5px rgba(0, 119, 181, 0.4) !important;
+        transition: all 0.2s !important;
     }}
     
-    /* === SUCCESS/ERROR MESSAGES === */
-    .stSuccess {{
-        background: {current_theme['success']}15 !important;
-        border-left: 4px solid {current_theme['success']} !important;
-        border-radius: 8px !important;
+    button[kind="primary"]:hover {{
+        transform: translateY(-2px);
+        box-shadow: 0 15px 25px -5px rgba(0, 119, 181, 0.5) !important;
     }}
     
-    .stError {{
-        background: {current_theme['error']}15 !important;
-        border-left: 4px solid {current_theme['error']} !important;
-        border-radius: 8px !important;
+    div.stButton > button {{
+        border-radius: 12px;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }}
     
-    .stWarning {{
-        background: {current_theme['warning']}15 !important;
-        border-left: 4px solid {current_theme['warning']} !important;
-        border-radius: 8px !important;
-    }}
-    
-    /* === TABS === */
+    /* === TABS (Pills) === */
     .stTabs [data-baseweb="tab-list"] {{
-        gap: 0.5rem;
+        background-color: rgba(255,255,255,0.5);
+        padding: 0.25rem;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.8);
+        gap: 0;
     }}
     
     .stTabs [data-baseweb="tab"] {{
-        border-radius: 8px;
-        padding: 0.625rem 1.25rem;
+        border-radius: 12px;
+        padding: 0.5rem 1rem;
         font-weight: 600;
-        color: {current_theme['graphite']};
+        border: none;
+        background-color: transparent;
     }}
     
     .stTabs [aria-selected="true"] {{
-        background: {current_theme['purple_neon']}15 !important;
+        background-color: white !important;
         color: {current_theme['purple_neon']} !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
     }}
 
 </style>
@@ -321,14 +302,43 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-page = st.sidebar.radio("Navegação", [
+# Helper for programmatic navigation
+def navigate_to(page):
+    st.session_state["navigation_selection"] = page
+    st.session_state["nav_radio"] = page
+
+# Handle navigation state
+if "navigation_selection" not in st.session_state:
+    st.session_state["navigation_selection"] = "🏠 Home"
+
+# Sidebar Navigation
+# We use index to sync with session state instead of direct key binding to avoid "locked" state issues
+current_selection = st.session_state["navigation_selection"]
+nav_options = [
     "🏠 Home", 
+    "📊 Dashboard",
     "✨ Gerador de Posts", 
+    "📚 Biblioteca",
     "📅 Agendamento",
     "🎙️ Criar de Mídia", 
     "📡 News Radar", 
     "⚙️ Configurações"
-])
+]
+
+try:
+    current_index = nav_options.index(current_selection)
+except ValueError:
+    current_index = 0
+
+page = st.sidebar.radio(
+    "Navegação", 
+    nav_options,
+    # index=current_index,  <-- REMOVED TO FIX WARNING. Key is sufficient.
+    # When key is provided, Streamlit uses session state.
+    # If we provide index AND key, and they differ from session state, it warns.
+    key="nav_radio",
+    on_change=lambda: navigate_to(st.session_state.nav_radio)
+)
 
 # Keyboard shortcuts hint
 st.sidebar.markdown("---")
@@ -341,175 +351,155 @@ st.sidebar.markdown("""
 </small>
 """, unsafe_allow_html=True)
 
-
-
-
 if page == "🏠 Home":
-    from src import analytics
-    import plotly.graph_objects as go
-    
-    # Hero Section
+    # Hero Section - Mobile App Style
     st.markdown(f"""
-    <div style='text-align: center; padding: 2rem 0 1.5rem 0;'>
-        <h1 style='font-size: 2.5rem; margin-bottom: 0.75rem; background: linear-gradient(135deg, {current_theme['purple_neon']} 0%, {current_theme['cyan_blue']} 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;'>
-            ✨ Bem-vindo ao LinPost
+    <div style='text-align: left; padding: 1rem 0 2rem 0;'>
+        <h1 style='font-size: 2.25rem; margin-bottom: 0.5rem;'>
+            Bem-vindo ao LinPost
         </h1>
-        <p style='font-size: 1.125rem; color: {current_theme['graphite']}; max-width: 600px; margin: 0 auto;'>
-            Sua central inteligente para criar conteúdo, ideias e posts usando IA — com consistência e velocidade.
+        <p style='font-size: 1.125rem; color: {current_theme['graphite']}; max-width: 600px; line-height: 1.5;'>
+            Sua central inteligente para conteúdo, ideias e posts usando IA.
         </p>
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("---")
-    
-    # Period selector
-    col_title, col_period = st.columns([3, 1])
-    with col_title:
-        st.markdown("### 📊 Seu painel de criação")
-    with col_period:
-        period_options = {
-            "7 dias": 7,
-            "30 dias": 30,
-            "90 dias": 90,
-            "1 ano": 365
-        }
-        selected_period = st.selectbox("📅 Período", list(period_options.keys()), index=1, label_visibility="collapsed")
-        period_days = period_options[selected_period]
-    
-    # Get metrics for selected period
-    metrics = analytics.get_metrics(period_days)
-    
-    
-    # Metrics Cards with comparison
-    col1, col2, col3, col4 = st.columns(4)
+    # Grid Layout
+    col1, col2 = st.columns(2)
     
     with col1:
+        # Generator Card
         st.markdown(f"""
-        <div class="post-card metric-card">
-            <div style="color: {current_theme['purple_neon']}; font-size: 2rem; margin-bottom: 0.5rem;">📝</div>
-            <div style="font-size: 2rem; font-weight: 700; color: {current_theme['deep_black']}; font-family: 'Plus Jakarta Sans', sans-serif;">{metrics['total_posts']}</div>
-            <div style="color: {current_theme['graphite']}; font-size: 0.8125rem; margin-top: 0.25rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Total de Posts</div>
-            <div style="color: {current_theme['graphite']}; font-size: 0.75rem; margin-top: 0.25rem;">Quantos posts você já criou aqui</div>
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">✨</div>
+            <h3 style="margin-bottom: 0.5rem; color: {current_theme['deep_black']};">Gerador de Conteúdo</h3>
+            <p style="font-size: 0.875rem; color: {current_theme['graphite']};">Crie posts virais com IA em segundos.</p>
         </div>
         """, unsafe_allow_html=True)
-    
+        if st.button("🚀 Criar Novo Post", use_container_width=True, type="primary", on_click=navigate_to, args=("✨ Gerador de Posts",)):
+            pass
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Analytics/Radar Card (using placeholder for now)
+        st.markdown(f"""
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">📡</div>
+            <h3 style="margin-bottom: 0.5rem; color: {current_theme['deep_black']};">News Radar</h3>
+            <p style="font-size: 0.875rem; color: {current_theme['graphite']};">Tendências e notícias em tempo real.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("📡 Ver Notícias", use_container_width=True, on_click=navigate_to, args=("📡 News Radar",)):
+            pass
+
     with col2:
+        # Scheduling Card
         st.markdown(f"""
-        <div class="post-card metric-card">
-            <div style="color: {current_theme['cyan_blue']}; font-size: 2rem; margin-bottom: 0.5rem;">🔥</div>
-            <div style="font-size: 2rem; font-weight: 700; color: {current_theme['deep_black']}; font-family: 'Plus Jakarta Sans', sans-serif;">{metrics['posts_in_period']}</div>
-            <div style="color: {current_theme['graphite']}; font-size: 0.8125rem; margin-top: 0.25rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Sequência</div>
-            <div style="color: {current_theme['success'] if metrics['posts_change'] >= 0 else current_theme['error']}; font-size: 0.75rem; margin-top: 0.25rem; font-weight: 600;">{'+' if metrics['posts_change'] >= 0 else ''}{metrics['posts_change']} <span style="font-weight: 400; color: {current_theme['graphite']};">vs anterior</span></div>
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">📅</div>
+            <h3 style="margin-bottom: 0.5rem; color: {current_theme['deep_black']};">Agendamento</h3>
+            <p style="font-size: 0.875rem; color: {current_theme['graphite']};">Visualize e gerencie seu calendário.</p>
         </div>
         """, unsafe_allow_html=True)
-    
-    with col3:
+        if st.button("🗓️ Ver Calendário", use_container_width=True, on_click=navigate_to, args=("📅 Agendamento",)):
+            pass
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Media Card
         st.markdown(f"""
-        <div class="post-card metric-card">
-            <div style="color: {current_theme['purple_neon']}; font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
-            <div style="font-size: 2rem; font-weight: 700; color: {current_theme['deep_black']}; font-family: 'Plus Jakarta Sans', sans-serif;">{metrics['avg_words']}</div>
-            <div style="color: {current_theme['graphite']}; font-size: 0.8125rem; margin-top: 0.25rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Média de Palavras</div>
-            <div style="color: {current_theme['graphite']}; font-size: 0.75rem; margin-top: 0.25rem;">Ideal entre 80-200</div>
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎙️</div>
+            <h3 style="margin-bottom: 0.5rem; color: {current_theme['deep_black']};">Criar Mídia</h3>
+            <p style="font-size: 0.875rem; color: {current_theme['graphite']};">Gere imagens e áudios para seus posts.</p>
         </div>
         """, unsafe_allow_html=True)
+        if st.button("🎨 Criar Visual", use_container_width=True, on_click=navigate_to, args=("🎙️ Criar de Mídia",)):
+            pass
+
+    st.markdown("---")
     
-    with col4:
-        st.markdown(f"""
-        <div class="post-card metric-card">
-            <div style="color: {current_theme['cyan_blue']}; font-size: 2rem; margin-bottom: 0.5rem;">🔥</div>
-            <div style="font-size: 2rem; font-weight: 700; color: {current_theme['deep_black']}; font-family: 'Plus Jakarta Sans', sans-serif;">{metrics['streak']}</div>
-            <div style="color: {current_theme['graphite']}; font-size: 0.8125rem; margin-top: 0.25rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Sequência Ativa</div>
-            <div style="color: {current_theme['graphite']}; font-size: 0.75rem; margin-top: 0.25rem;">Dias consecutivos criando</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # Insights Section
-    st.markdown("### 💡 Insights Automáticos")
-    insights = analytics.get_insights(metrics)
-    
-    cols_insights = st.columns(len(insights))
-    for idx, insight in enumerate(insights):
-        with cols_insights[idx]:
-            # Professional styling: White card with colored left border
-            border_color = current_theme['success'] if insight['type'] == "positive" else current_theme['warning'] if insight['type'] == "tip" else current_theme['cyan_blue']
-            
-            st.markdown(f"""
-            <div class="post-card" style="border-left: 4px solid {border_color}; padding: 1.25rem; height: 100%;">
-                <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
-                    <span style="font-size: 1.25rem; margin-right: 0.5rem;">{insight['icon']}</span>
-                    <span style="font-weight: 600; color: {current_theme['deep_black']};">{insight['title']}</span>
-                </div>
-                <div style="font-size: 0.9rem; color: {current_theme['graphite']}; line-height: 1.5;">{insight['description']}</div>
-            </div>
-            """, unsafe_allow_html=True)
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # Two columns: Top Topics and Activity Chart
-    col_left, col_right = st.columns([2, 3])
-    
-    with col_left:
-        st.markdown("### 🏷️ Tópicos Mais Usados")
-        
-        top_topics = analytics.get_top_topics()
-        
-        if top_topics:
-            # Convert to DataFrame for better display
-            import pandas as pd
-            df = pd.DataFrame(top_topics, columns=['Tópico', 'Posts'])
-            
-            st.dataframe(
-                df,
-                use_container_width=True,
-                hide_index=True,
-                column_config={
-                    "Tópico": st.column_config.TextColumn("Tópico"),
-                    "Posts": st.column_config.ProgressColumn("Frequência", format="%d", min_value=0, max_value=max([t[1] for t in top_topics]))
-                }
-            )
-        else:
-            st.info("Crie posts para ver seus tópicos mais usados!")
+    st.markdown("---")
 
     
-    with col_right:
-        st.markdown("### 📈 Atividade de Postagem (30 dias)")
-        
-        dates, counts = analytics.get_posting_activity()
-        
-        fig = go.Figure()
-        fig.add_trace(go.Bar(
-            x=dates,
-            y=counts,
-            marker_color='#2563eb',
-            opacity=0.8
-        ))
-        
-        fig.update_layout(
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(255,255,255,0.95)',
-            margin=dict(l=20, r=20, t=20, b=20),
-            height=300,
-            xaxis=dict(
-                showgrid=False,
-                showline=True,
-                linecolor='#e5e7eb'
-            ),
-            yaxis=dict(
-                showgrid=True,
-                gridcolor='#f3f4f6',
-                showline=False,
-                title="Posts"
-            ),
-            hovermode='x unified'
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
+elif page == "📊 Dashboard":
+    st.markdown("### 📊 Dashboard Geral")
     
-    st.markdown("<br>", unsafe_allow_html=True)
+    from src import analytics
+    # Get metrics
+    metrics = analytics.get_metrics(30)
     
+    # 1. Top Metrics Row
+    st.markdown("#### Visão Geral (30 dias)")
+    m_col1, m_col2, m_col3 = st.columns(3)
+    with m_col1:
+        st.metric("Total de Posts", metrics['total_posts'])
+    with m_col2:
+        st.metric("Sequência", f"{metrics['streak']} dias")
+    with m_col3:
+        st.metric("Média Palavras", metrics['avg_words'])
+    
+    st.markdown("---")
+    
+    # 2. Activity Chart (Moved from Library)
+    st.markdown("#### 📈 Atividade de Postagem")
+    dates, counts = analytics.get_posting_activity()
+    
+    import plotly.graph_objects as go
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=dates,
+        y=counts,
+        marker_color=current_theme['purple_neon'],
+        opacity=0.8
+    ))
+    
+    fig.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(255,255,255,0.9)',
+        margin=dict(l=20, r=20, t=20, b=20),
+        height=350,
+        xaxis=dict(
+            showgrid=False,
+            showline=True,
+            linecolor=current_theme['border_gray']
+        ),
+        yaxis=dict(
+            showgrid=True,
+            gridcolor=current_theme['soft_gray'],
+            showline=False,
+            title="Posts"
+        ),
+        hovermode='x unified'
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # 3. Insights (Moved from Library)
+    st.markdown("---")
+    st.markdown("#### 💡 Insights Automáticos")
+    insights = analytics.get_insights(metrics)
+    
+    cols_insights = st.columns(len(insights) if insights else 1)
+    if insights:
+        for idx, insight in enumerate(insights):
+            with cols_insights[idx]:
+                border_color = current_theme['success'] if insight['type'] == "positive" else current_theme['warning'] if insight['type'] == "tip" else current_theme['cyan_blue']
+                st.markdown(f'''
+                <div class="post-card" style="border-left: 4px solid {border_color}; padding: 1.25rem; height: 100%;">
+                    <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
+                        <span style="font-size: 1.25rem; margin-right: 0.5rem;">{insight['icon']}</span>
+                        <span style="font-weight: 600; color: {current_theme['deep_black']};">{insight['title']}</span>
+                    </div>
+                    <div style="font-size: 0.9rem; color: {current_theme['graphite']}; line-height: 1.5;">{insight['description']}</div>
+                </div>
+                ''', unsafe_allow_html=True)
+    else:
+        st.info("Ainda não temos insights suficientes. Continue postando!")
+
+elif page == "📚 Biblioteca":
+    st.markdown("### 📚 Sua Biblioteca de Conteúdo")
+
     # Search and Filter Section
     st.markdown("### 🔍 Buscar Posts")
     
@@ -558,12 +548,12 @@ if page == "🏠 Home":
             if post_tags:
                 tags_html = "<div style='margin-top: 0.5rem;'>"
                 for tag in post_tags:
-                    tags_html += f"<span style='background: #667eea; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; margin-right: 0.25rem; display: inline-block;'>🏷️ {tag}</span>"
+                    tags_html += f"<span style='background: {current_theme['purple_neon']}; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; margin-right: 0.25rem; display: inline-block;'>🏷️ {tag}</span>"
                 tags_html += "</div>"
             
             fav_icon = "⭐" if is_favorite else "☆"
             
-            st.markdown(f"""
+            st.markdown(f'''
             <div class="post-card">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                     <div class="post-topic">{topic}</div>
@@ -573,7 +563,7 @@ if page == "🏠 Home":
                 <div class="post-content">{content}</div>
                 {tags_html}
             </div>
-            """, unsafe_allow_html=True)
+            ''', unsafe_allow_html=True)
             
             # Action Buttons Row
             col_actions = st.columns([1, 1, 1, 3])
@@ -1119,32 +1109,105 @@ elif page == "📅 Agendamento":
 
 
 elif page == "🎙️ Criar de Mídia":
-    st.markdown("## 🎙️ Criar de Mídia")
-    st.markdown("### Transforme imagens e áudios em posts incríveis")
+    # Hero Section
+    st.markdown(f"""
+    <div style='margin-bottom: 2rem;'>
+        <h1 style='font-size: 2.25rem; margin-bottom: 0.5rem; color: {current_theme['deep_black']};'>
+            🎙️ Studio Criativo
+        </h1>
+        <p style='font-size: 1rem; color: {current_theme['graphite']};'>
+            Transforme seus arquivos de mídia em posts virais.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    tab_img, tab_audio = st.tabs(["📸 Imagem", "🎤 Áudio"])
+    # Feature Selection Cards
+    col_media1, col_media2 = st.columns(2)
     
-    with tab_img:
-        st.markdown("#### Gerar post a partir de Imagem")
-        uploaded_img = st.file_uploader("Faça upload de uma imagem", type=['png', 'jpg', 'jpeg'])
+    # State management for media type
+    if "media_mode" not in st.session_state:
+        st.session_state["media_mode"] = "image"
+        
+    with col_media1:
+        # Image Card
+        is_active = st.session_state["media_mode"] == "image"
+        bg_color = current_theme['light_blue'] if is_active else "white"
+        border_color = current_theme['purple_neon'] if is_active else "transparent"
+        
+        st.markdown(f"""
+        <div style="
+            background: {bg_color};
+            border: 2px solid {border_color};
+            border-radius: 16px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        ">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📸</div>
+            <h3 style="margin: 0; color: {current_theme['deep_black']}; font-size: 1.1rem;">Post de Imagem</h3>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Selecionar Imagem", key="btn_mode_img", use_container_width=True):
+            st.session_state["media_mode"] = "image"
+            st.rerun()
+
+    with col_media2:
+        # Audio Card
+        is_active = st.session_state["media_mode"] == "audio"
+        bg_color = current_theme['light_blue'] if is_active else "white"
+        border_color = current_theme['purple_neon'] if is_active else "transparent"
+        
+        st.markdown(f"""
+        <div style="
+            background: {bg_color};
+            border: 2px solid {border_color};
+            border-radius: 16px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        ">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎙️</div>
+            <h3 style="margin: 0; color: {current_theme['deep_black']}; font-size: 1.1rem;">Post de Áudio</h3>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Selecionar Áudio", key="btn_mode_audio", use_container_width=True):
+            st.session_state["media_mode"] = "audio"
+            st.rerun()
+            
+    st.markdown("---")
+
+    if st.session_state["media_mode"] == "image":
+        st.markdown(f"""
+        <div style="background: white; border-radius: 16px; padding: 2rem; border: 2px dashed {current_theme['border_gray']}; text-align: center;">
+            <p style="font-weight: 500; margin-bottom: 1rem;">Arraste sua imagem aqui</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # We place the uploader "inside" via visual proximity, though Streamlit limitations apply
+        uploaded_img = st.file_uploader("Upload de imagem", type=['png', 'jpg', 'jpeg'], label_visibility="collapsed")
         
         if uploaded_img:
-            st.image(uploaded_img, caption="Imagem carregada", width=300)
-            img_topic = st.text_input("Sobre o que é essa imagem? (Opcional)", placeholder="Ex: Evento da empresa, Novo produto...")
+            col_preview, col_form = st.columns([1, 2])
             
-            if st.button("✨ Gerar Post da Imagem", type="primary"):
-                with st.spinner("👀 Analisando imagem e gerando post..."):
-                    # Placeholder for vision API
-                    # In a real app, we'd use GPT-4 Vision or Gemini Vision
-                    # For now, we'll simulate or use a text prompt if we can't do vision
-                    st.info("🚧 A análise de imagem requer uma API de Visão (GPT-4V ou Gemini Pro Vision).")
-                    st.markdown("Simulando geração...")
-                    
-                    import time
-                    time.sleep(2)
-                    
-                    generated_content = f"""🚀 Que momento incrível!
-                    
+            with col_preview:
+                st.image(uploaded_img, caption="Preview", use_container_width=True)
+            
+            with col_form:
+                st.markdown("### 🪄 Configurar Geração")
+                img_topic = st.text_input("Contexto (Opcional)", placeholder="Ex: Evento da empresa, Novo produto...")
+                
+                if st.button("✨ Gerar Post Mágico", type="primary", use_container_width=True):
+                    with st.spinner("👀 Analisando pixels..."):
+                        # Simulation of Vision API
+                        import time
+                        time.sleep(2)
+                        
+                        generated_content = f"""🚀 Que momento incrível!
+                        
 Acabei de registrar essa imagem que representa muito para mim: {img_topic if img_topic else 'uma conquista importante'}.
 
 Muitas vezes focamos apenas no resultado final, mas o processo é onde a mágica acontece. Essa foto me lembra que cada passo importa.
@@ -1152,47 +1215,56 @@ Muitas vezes focamos apenas no resultado final, mas o processo é onde a mágica
 💡 O que você tem celebrado ultimamente?
 
 #Conquista #Jornada #LinPost"""
-                    
-                    st.session_state['last_post'] = generated_content
-                    st.session_state['last_topic'] = img_topic or "Imagem"
-                    st.success("✅ Post gerado! Vá para 'Gerador de Posts' para editar.")
-    
-    with tab_audio:
-        st.markdown("#### Transcrever Áudio e Gerar Post")
-        uploaded_audio = st.file_uploader("Faça upload de um áudio", type=['mp3', 'wav', 'm4a', 'ogg'])
+                        
+                        st.session_state['last_post'] = generated_content
+                        st.session_state['last_topic'] = img_topic or "Imagem"
+                        st.success("✅ Post gerado! Redirecionando...")
+                        time.sleep(1)
+                        st.session_state["navigation_selection"] = "✨ Gerador de Posts"
+                        st.rerun()
+
+    elif st.session_state["media_mode"] == "audio":
+        st.markdown(f"""
+        <div style="background: white; border-radius: 16px; padding: 2rem; border: 2px dashed {current_theme['border_gray']}; text-align: center;">
+            <p style="font-weight: 500; margin-bottom: 1rem;">Solte seu áudio aqui (Voice memo, Podcast...)</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        uploaded_audio = st.file_uploader("Upload de áudio", type=['mp3', 'wav', 'm4a', 'ogg'], label_visibility="collapsed")
         
         if uploaded_audio:
             st.audio(uploaded_audio)
             
-            if st.button("📝 Transcrever e Gerar Post", type="primary"):
+            if st.button("📝 Transcrever e Gerar Post", type="primary", use_container_width=True):
                 with st.spinner("👂 Ouvindo e transcrevendo..."):
-                    # Placeholder for Whisper
-                    # In real app: transcribe_audio(uploaded_audio)
-                    st.info("🚧 A transcrição requer a API Whisper configurada.")
-                    st.markdown("Simulando transcrição...")
-                    
                     import time
                     time.sleep(2)
                     
                     transcription = "Olá pessoal, hoje eu queria falar sobre a importância da consistência. Muita gente começa animada mas para no meio do caminho. O segredo é continuar mesmo quando não está motivado."
                     
-                    st.markdown(f"**Transcrição:** _{transcription}_")
-                    st.markdown("---")
+                    st.markdown(f"""
+                    <div style="background: {current_theme['soft_gray']}; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                        <strong>🎙️ Transcrição:</strong><br>
+                        <em>"{transcription}"</em>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
                     with st.spinner("✨ Transformando em post..."):
                         generated_content = f"""💎 A Chave é a Consistência!
 
 "{transcription}"
 
-Hoje refleti sobre isso. A motivação te faz começar, mas é o hábito que te faz continuar. Não espere ter vontade para fazer o que precisa ser feito.
-
-Você tem sido consistente nos seus projetos? 👇
+Hoje refleti sobre isso. A motivação te faz começar, mas é o hábito que te faz continuar.
 
 #Consistencia #Disciplina #LinPost"""
                         
                         st.session_state['last_post'] = generated_content
                         st.session_state['last_topic'] = "Transcrição de Áudio"
-                        st.success("✅ Post gerado! Vá para 'Gerador de Posts' para editar.")
+                        
+                        st.success("✅ Post gerado! Redirecionando...")
+                        time.sleep(1)
+                        st.session_state["navigation_selection"] = "✨ Gerador de Posts"
+                        st.rerun()
 
 
 elif page == "📡 News Radar":
@@ -1205,7 +1277,7 @@ elif page == "📡 News Radar":
             🛰️ News Radar
         </h1>
         <p style='font-size: 1rem; color: {current_theme['graphite']};'>
-            Descubra notícias relevantes e transforme em conteúdo com IA.
+            Monitore tendências e crie conteúdo atualizado em segundos.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -1217,13 +1289,25 @@ elif page == "📡 News Radar":
         st.info("Para usar o News Radar, adicione `NEWS_API_KEY` nos secrets do Streamlit Cloud.")
         st.markdown("Obtenha sua chave gratuita em: [NewsAPI.org](https://newsapi.org)")
     else:
-        # Search interface
-        col_search, col_lang = st.columns([3, 1])
+        # Search Container
+        st.markdown(f"""
+        <div style="
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            border: 1px solid {current_theme['border_gray']};
+            margin-bottom: 2rem;
+        ">
+        """, unsafe_allow_html=True)
+        
+        col_search, col_lang, col_btn = st.columns([3, 1, 1])
         
         with col_search:
             search_topic = st.text_input(
-                "🔍 Buscar notícias sobre:",
-                placeholder="Ex.: Inteligência Artificial, Tendências de marketing, Startups, Tecnologia...",
+                "🔎 Tópico",
+                placeholder="Ex.: Inteligência Artificial, Startups...",
+                label_visibility="collapsed",
                 key="news_search"
             )
         
@@ -1232,89 +1316,80 @@ elif page == "📡 News Radar":
                 "Idioma",
                 options=[("Português", "pt"), ("Inglês", "en"), ("Espanhol", "es")],
                 format_func=lambda x: x[0],
+                label_visibility="collapsed",
                 key="news_lang"
             )
+            
+        with col_btn:
+            if st.button("Buscar", use_container_width=True, type="primary"):
+                if search_topic:
+                    with st.spinner("Reading the web..."):
+                        articles = news.fetch_news(search_topic, language=language[1])
+                        st.session_state['news_articles'] = articles
+                        st.session_state['news_topic'] = search_topic
+                else:
+                    st.warning("Digite um tópico.")
         
-        if st.button("🔎 Buscar Notícias", use_container_width=True, type="primary"):
-            if search_topic:
-                with st.spinner("🔍 Buscando notícias..."):
-                    articles = news.fetch_news(search_topic, language=language[1])
-                    st.session_state['news_articles'] = articles
-                    st.session_state['news_topic'] = search_topic
-            else:
-                st.warning("Digite um tópico para buscar.")
+        st.markdown("</div>", unsafe_allow_html=True)
         
         # Display results
         if 'news_articles' in st.session_state and st.session_state['news_articles']:
             articles = st.session_state['news_articles']
-            st.markdown(f"### 📰 {len(articles)} notícias encontradas sobre '{st.session_state['news_topic']}'")
-            st.markdown("---")
+            st.markdown(f"### Destaques para '{st.session_state['news_topic']}'")
             
-            # Display articles in grid
-            for idx, article in enumerate(articles):
-                # Create card
-                col_img, col_content = st.columns([1, 2])
-                
-                with col_img:
-                    if article.get('urlToImage'):
-                        st.image(article['urlToImage'], use_container_width=True)
-                    else:
-                        st.markdown("""
-                        <div style="
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            height: 150px;
-                            border-radius: 8px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            color: white;
-                            font-size: 3rem;
-                        ">📰</div>
-                        """, unsafe_allow_html=True)
-                
-                with col_content:
-                    st.markdown(f"### {article['title']}")
-                    st.caption(f"📅 {article.get('publishedAt', 'N/A')[:10]} • 📰 {article['source']['name']}")
+            # Display articles in a nicer grid
+            # Using CSS Grid via markdown for better control or just Columns iterating
+            
+            for article in articles:
+                # Article Card
+                with st.container():
+                    col_img, col_txt = st.columns([1, 3])
                     
-                    description = article.get('description', 'Sem descrição disponível.')
-                    if len(description) > 200:
-                        description = description[:200] + "..."
-                    st.markdown(description)
-                    
-                    col_btn1, col_btn2 = st.columns(2)
-                    with col_btn1:
-                        st.link_button("🔗 Ler Notícia", article['url'], use_container_width=True)
-                    
-                    with col_btn2:
-                        if st.button("✨ Gerar Post com IA", key=f"gen_news_{idx}", use_container_width=True):
-                            # Format news for AI
-                            news_context = news.format_news_for_prompt(article)
+                    with col_img:
+                        if article.get('urlToImage'):
+                            st.image(article['urlToImage'], use_container_width=True)
+                        else:
+                            st.markdown(f"""
+                            <div style="
+                                height: 120px;
+                                background: linear-gradient(135deg, {current_theme['soft_gray']} 0%, #e0e0e0 100%);
+                                border-radius: 12px;
+                                display: flex; align-items: center; justify-content: center;
+                                font-size: 2rem;
+                            ">📰</div>
+                            """, unsafe_allow_html=True)
                             
-                            # Generate post
-                            with st.spinner("✨ Gerando post..."):
-                                from src import generator
-                                prompt = f"""Crie um post profissional e envolvente para LinkedIn baseado nesta notícia:
-                                
-{news_context}
-
-O post deve:
-- Começar com um gancho forte
-- Apresentar a notícia de forma clara
-- Adicionar sua análise ou opinião
-- Terminar com uma pergunta para engajamento
-- Usar emojis estrategicamente
-- Ter entre 150-250 palavras
-"""
-                                content = generator.generate_post(prompt, tone="Profissional")
-                                st.session_state['last_post'] = content
-                                st.session_state['last_topic'] = article['title']
-                                st.success("✅ Post gerado! Vá para 'Gerador de Posts' para editar e publicar.")
-                                st.success("✅ Post gerado com sucesso!")
-                
-                st.markdown("---")
+                    with col_txt:
+                        st.markdown(f"""
+                        <h4 style="margin: 0; color: {current_theme['deep_black']};">{article['title']}</h4>
+                        <p style="font-size: 0.8rem; color: #6B7280; margin: 0.2rem 0;">
+                            {article['source']['name']} • {article.get('publishedAt', 'N/A')[:10]}
+                        </p>
+                        <p style="font-size: 0.9rem; color: {current_theme['graphite']}; line-height: 1.4;">
+                            {article.get('description', '')[:150]}...
+                        </p>
+                        """, unsafe_allow_html=True)
+                        
+                        btn_col1, btn_col2 = st.columns([1, 2])
+                        with btn_col1:
+                             st.link_button("Ler Mais", article['url'], use_container_width=True)
+                        with btn_col2:
+                            if st.button(f"✨ Criar Post sobre isso", key=f"btn_art_{article['url']}", use_container_width=True):
+                                # Logic to generate post
+                                news_context = news.format_news_for_prompt(article)
+                                with st.spinner("Gerando conteúdo..."):
+                                    from src import generator
+                                    prompt = f"Escreva um post para LinkedIn sobre: {news_context}"
+                                    content = generator.generate_post(prompt, tone="Profissional")
+                                    st.session_state['last_post'] = content
+                                    st.session_state['last_topic'] = article['title']
+                                    st.session_state["navigation_selection"] = "✨ Gerador de Posts"
+                                    st.rerun()
+                                    
+                    st.markdown("---")
         
         elif 'news_articles' in st.session_state and not st.session_state['news_articles']:
-            st.info("🔍 Nenhuma notícia encontrada. Tente outro tópico ou idioma.")
+            st.info("🔍 Nenhuma notícia encontrada. Tente outro tópico.")
 
 elif page == "⚙️ Configurações":
     from src import linkedin
@@ -1331,25 +1406,64 @@ elif page == "⚙️ Configurações":
     </div>
     """, unsafe_allow_html=True)
     
+    # LinkedIn Integration Card
     st.markdown("### 🔗 Integração LinkedIn")
     
-    if linkedin.is_connected():
-        user = st.session_state.get('linkedin_user', {})
-        st.success(f"✅ Conectado como: **{user.get('name', 'Usuário')}**")
-        
-        if st.button("🔓 Desconectar LinkedIn"):
+    is_connected = linkedin.is_connected()
+    status_color = current_theme['success'] if is_connected else current_theme['warning']
+    status_icon = "✅" if is_connected else "⚠️"
+    status_text = "Conectado" if is_connected else "Desconectado"
+    
+    user_info = ""
+    if is_connected:
+        user_data = st.session_state.get('linkedin_user', {})
+        user_name = user_data.get('name', 'Usuário')
+        user_info = f"<p style='margin: 0.5rem 0 0 0; font-weight: 500;'>👤 {user_name}</p>"
+    
+    st.markdown(f"""
+<div class="post-card" style="border-left: 4px solid {status_color};">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<div>
+<h3 style="margin: 0; color: {current_theme['deep_black']};">Status da Conexão</h3>
+<p style="margin: 0.2rem 0; color: {current_theme['graphite']};">
+{status_icon} <strong>{status_text}</strong>
+</p>
+{user_info}
+</div>
+<div style="font-size: 2rem;">🔗</div>
+</div>
+</div>
+""", unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    if is_connected:
+        if st.button("🔓 Desconectar LinkedIn", use_container_width=True):
             linkedin.disconnect_linkedin()
             st.rerun()
     else:
-        st.info("📌 Conecte sua conta do LinkedIn para publicar posts diretamente do LinPost.")
-        
         auth_url = linkedin.get_authorization_url()
         if auth_url:
-            st.link_button("🔗 Conectar LinkedIn", auth_url, type="primary", use_container_width=True)
+            st.link_button("🔗 Conectar Conta do LinkedIn", auth_url, type="primary", use_container_width=True)
         else:
-            st.error("⚠️ Credenciais não configuradas. Verifique os secrets.")
-    
+            st.error("⚠️ Credenciais não configuradas. Verifique seus secrets.")
+            
     st.markdown("---")
+    
+    # API Keys Section
     st.markdown("### 🔑 Chaves de API")
-    st.info("Configure suas chaves nos secrets do Streamlit Cloud para habilitar recursos avançados.")
+    
+    st.markdown(f"""
+<div class="post-card">
+<div style="display: flex; align-items: start;">
+<span style="font-size: 1.5rem; margin-right: 1rem;">🛡️</span>
+<div>
+<h4 style="margin: 0; color: {current_theme['deep_black']};">Gerenciamento de Segredos</h4>
+<p style="font-size: 0.9rem; color: {current_theme['graphite']}; margin-top: 0.5rem;">
+As chaves de API (OpenAI, LinkedIn, Supabase) são gerenciadas de forma segura através do arquivo <code>secrets.toml</code> do Streamlit.
+</p>
+</div>
+</div>
+</div>
+""", unsafe_allow_html=True)
 

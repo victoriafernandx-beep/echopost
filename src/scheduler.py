@@ -61,7 +61,23 @@ class PostScheduler:
             from src import database
             
             # Get posts that are ready to publish
-            posts_to_publish = database.get_posts_to_publish()
+            # Use service role to bypass RLS in background thread
+            supabase = database.get_supabase_client(use_service_role=True)
+            
+            # We need to reimplement get_posts_to_publish here because the original function
+            # in database.py calls get_supabase_client() without args (Anon key).
+            # Or we can update database.py. Let's do it manually here for safety.
+            
+            from datetime import datetime
+            now = datetime.utcnow().isoformat()
+            
+            response = supabase.table("scheduled_posts")\
+                .select("*")\
+                .eq("status", "pending")\
+                .lte("scheduled_time", now)\
+                .execute()
+                
+            posts_to_publish = response.data
             
             logger.info(f"Found {len(posts_to_publish)} posts ready to publish")
             
@@ -102,7 +118,16 @@ class PostScheduler:
             # Attempt to publish to LinkedIn
             try:
                 # Fetch user token from DB
-                token_data = database.get_linkedin_token(user_id)
+                # Fetch user token from DB using Service Role (to bypass RLS)
+                supabase_admin = database.get_supabase_client(use_service_role=True)
+                
+                token_resp = supabase_admin.table("user_connections")\
+                    .select("*")\
+                    .eq("user_id", user_id)\
+                    .eq("provider", "linkedin")\
+                    .execute()
+                    
+                token_data = token_resp.data[0] if token_resp.data else None
                 
                 if token_data and token_data.get('access_token'):
                     token = token_data['access_token']
@@ -156,11 +181,13 @@ class PostScheduler:
                         except:
                             linkedin_post_id = "published"
 
-                        database.update_scheduled_post_status(
-                            post_id, 
-                            "published", 
-                            linkedin_post_id=linkedin_post_id
-                        )
+                        # Update status using admin client
+                        supabase_admin.table("scheduled_posts").update({
+                            "status": "published",
+                            "linkedin_post_id": linkedin_post_id,
+                            "published_at": datetime.utcnow().isoformat(),
+                            "updated_at": datetime.utcnow().isoformat()
+                        }).eq("id", post_id).execute()
                         logger.info(f"Successfully published post {post_id}")
                         self._notify_user(user_id, "success", f"Post publicado com sucesso!")
                         

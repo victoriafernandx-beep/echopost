@@ -4,14 +4,42 @@ Database operations for EchoPost
 import streamlit as st
 from supabase import create_client
 
-@st.cache_resource
+# supabase = create_client(url, key)
+# Removed cache_resource to ensure we can have unique authenticated clients per user/request
 def init_supabase():
     url = st.secrets["SUPABASE_URL"]
     key = st.secrets["SUPABASE_KEY"]
     return create_client(url, key)
 
+def get_supabase_client(use_service_role=False):
+    """
+    Get supabase client.
+    Args:
+        use_service_role: If True, attempts to use SUPABASE_SERVICE_KEY for admin access
+    """
+    url = st.secrets["SUPABASE_URL"]
+    
+    # Try to get service key if requested or if we are in background
+    if use_service_role:
+        key = st.secrets.get("SUPABASE_SERVICE_KEY", st.secrets["SUPABASE_KEY"])
+        return create_client(url, key)
+
+    # Standard client (Anon)
+    key = st.secrets["SUPABASE_KEY"]
+    client = create_client(url, key)
+    
+    # Try to inject user token if available (only works in Streamlit thread)
+    try:
+        if 'access_token' in st.session_state:
+            client.postgrest.auth(st.session_state.access_token)
+    except:
+        # We are likely in a background thread (scheduler) where st.session_state is inaccessible
+        pass
+        
+    return client
+
 def create_post(user_id, content, topic, tags=None):
-    supabase = init_supabase()
+    supabase = get_supabase_client()
     data = {
         "user_id": user_id,
         "content": content,
@@ -27,7 +55,7 @@ def create_post(user_id, content, topic, tags=None):
         return None
 
 def get_posts(user_id, limit=None):
-    supabase = init_supabase()
+    supabase = get_supabase_client()
     try:
         query = supabase.table("posts").select("*").eq("user_id", user_id).order("created_at", desc=True)
         if limit:
@@ -39,7 +67,7 @@ def get_posts(user_id, limit=None):
         return []
 
 def delete_post(post_id):
-    supabase = init_supabase()
+    supabase = get_supabase_client()
     try:
         response = supabase.table("posts").delete().eq("id", post_id).execute()
         return response
@@ -49,7 +77,7 @@ def delete_post(post_id):
 
 def update_post_tags(post_id, tags):
     """Update tags for a post"""
-    supabase = init_supabase()
+    supabase = get_supabase_client()
     try:
         response = supabase.table("posts").update({"tags": tags}).eq("id", post_id).execute()
         return response
@@ -59,7 +87,7 @@ def update_post_tags(post_id, tags):
 
 def toggle_favorite(post_id, is_favorite):
     """Toggle favorite status of a post"""
-    supabase = init_supabase()
+    supabase = get_supabase_client()
     try:
         response = supabase.table("posts").update({"is_favorite": is_favorite}).eq("id", post_id).execute()
         return response
@@ -69,7 +97,7 @@ def toggle_favorite(post_id, is_favorite):
 
 def search_posts(user_id, query=None, tags=None, favorites_only=False):
     """Search posts by content, tags, or favorites"""
-    supabase = init_supabase()
+    supabase = get_supabase_client()
     try:
         db_query = supabase.table("posts").select("*").eq("user_id", user_id)
         
@@ -101,7 +129,7 @@ def search_posts(user_id, query=None, tags=None, favorites_only=False):
 
 def get_all_tags(user_id):
     """Get all unique tags used by a user"""
-    supabase = init_supabase()
+    supabase = get_supabase_client()
     try:
         response = supabase.table("posts").select("tags").eq("user_id", user_id).execute()
         all_tags = set()
@@ -119,26 +147,34 @@ def get_all_tags(user_id):
 
 def create_scheduled_post(user_id, content, topic, scheduled_time, timezone="UTC", tags=None):
     """Create a new scheduled post"""
-    supabase = init_supabase()
+    # DEBUG: Check auth status
+    if 'access_token' not in st.session_state:
+        st.error("DEBUG: No access_token in session!")
+    else:
+        # st.toast(f"DEBUG: Auth Token Present. User ID: {user_id}", icon="🛡️")
+        pass
+
+    supabase = get_supabase_client()
     data = {
         "user_id": user_id,
         "content": content,
         "topic": topic,
-        "scheduled_time": scheduled_time,
-        "timezone": timezone,
         "tags": tags or [],
+        "scheduled_time": scheduled_time.isoformat(),
+        "timezone": timezone,
         "status": "pending"
     }
     try:
         response = supabase.table("scheduled_posts").insert(data).execute()
         return response
     except Exception as e:
+        # Improve error details
         st.error(f"Error creating scheduled post: {e}")
         return None
 
 def get_scheduled_posts(user_id, status=None, limit=None):
     """Get scheduled posts for a user, optionally filtered by status"""
-    supabase = init_supabase()
+    supabase = get_supabase_client()
     try:
         query = supabase.table("scheduled_posts").select("*").eq("user_id", user_id)
         
@@ -158,7 +194,7 @@ def get_scheduled_posts(user_id, status=None, limit=None):
 
 def get_posts_to_publish():
     """Get all pending posts that are ready to be published (scheduled_time <= now)"""
-    supabase = init_supabase()
+    supabase = get_supabase_client()
     try:
         from datetime import datetime
         now = datetime.utcnow().isoformat()
@@ -176,7 +212,7 @@ def get_posts_to_publish():
 
 def update_scheduled_post_status(post_id, status, linkedin_post_id=None, error_message=None):
     """Update the status of a scheduled post after publishing attempt"""
-    supabase = init_supabase()
+    supabase = get_supabase_client()
     try:
         from datetime import datetime
         
@@ -203,7 +239,7 @@ def update_scheduled_post_status(post_id, status, linkedin_post_id=None, error_m
 
 def delete_scheduled_post(post_id):
     """Delete/cancel a scheduled post"""
-    supabase = init_supabase()
+    supabase = get_supabase_client()
     try:
         # Option 1: Actually delete
         # response = supabase.table("scheduled_posts").delete().eq("id", post_id).execute()
@@ -217,7 +253,7 @@ def delete_scheduled_post(post_id):
 
 def reschedule_post(post_id, new_scheduled_time, new_timezone=None):
     """Reschedule a post to a new time"""
-    supabase = init_supabase()
+    supabase = get_supabase_client()
     try:
         update_data = {
             "scheduled_time": new_scheduled_time,
@@ -235,7 +271,7 @@ def reschedule_post(post_id, new_scheduled_time, new_timezone=None):
 
 def get_scheduled_posts_count(user_id, status="pending"):
     """Get count of scheduled posts by status"""
-    supabase = init_supabase()
+    supabase = get_supabase_client()
     try:
         response = supabase.table("scheduled_posts")\
             .select("id", count="exact")\
@@ -250,7 +286,7 @@ def get_scheduled_posts_count(user_id, status="pending"):
 
 def get_upcoming_scheduled_posts(user_id, days=7):
     """Get scheduled posts for the next N days"""
-    supabase = init_supabase()
+    supabase = get_supabase_client()
     try:
         from datetime import datetime, timedelta
         
@@ -277,7 +313,7 @@ def get_upcoming_scheduled_posts(user_id, days=7):
 
 def save_linkedin_token(user_id, access_token, refresh_token=None, expires_in=None):
     """Save LinkedIn token to database for offline access"""
-    supabase = init_supabase()
+    supabase = get_supabase_client()
     
     # Calculate expiration timestamp
     expires_at = None
@@ -303,7 +339,7 @@ def save_linkedin_token(user_id, access_token, refresh_token=None, expires_in=No
 
 def get_linkedin_token(user_id):
     """Get stored LinkedIn token for a user"""
-    supabase = init_supabase()
+    supabase = get_supabase_client()
     try:
         response = supabase.table("user_connections")\
             .select("*")\

@@ -9,3 +9,5 @@ apscheduler
 pytz
 
 openai
+pandas
+requests

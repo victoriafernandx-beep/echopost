@@ -24,6 +24,8 @@ def login(email, password):
             "password": password
         })
         st.session_state.user = response.user
+        if response.session:
+            st.session_state.access_token = response.session.access_token
         return True, "Login realizado com sucesso!"
     except Exception as e:
         return False, f"Erro no login: {str(e)}"
@@ -38,13 +40,15 @@ def signup(email, password):
         })
         # Check if email confirmation is required
         if response.user and response.user.identities and len(response.user.identities) > 0:
-            return True, "Conta criada! Verifique seu email se necessário."
+            return True, "Conta criada! Tente fazer login."
         else:
             # Sometimes signup returns user but maybe waits for confirm
             # If auto-confirm is on, we might be good
             if response.user:
-                 st.session_state.user = response.user
-                 return True, "Conta criada com sucesso!"
+                st.session_state.user = response.user
+                if response.session:
+                    st.session_state.access_token = response.session.access_token
+                return True, "Conta criada com sucesso!"
             return False, "Erro desconhecido ao criar conta."
     except Exception as e:
         return False, f"Erro no cadastro: {str(e)}"
