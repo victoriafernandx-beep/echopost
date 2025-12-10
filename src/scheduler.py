@@ -68,55 +68,26 @@ class PostScheduler:
             # in database.py calls get_supabase_client() without args (Anon key).
             # Or we can update database.py. Let's do it manually here for safety.
             
-            # DEBUG: Log environment
+            # DEBUG: Log environment (Keep simple for production)
             import streamlit as st
-            import base64
-            import json
-            
+            # Check for Service Key presence only
             has_service_key = "SUPABASE_SERVICE_KEY" in st.secrets
-            url = st.secrets["SUPABASE_URL"]
-            masked_url = url[:20] + "..." if url else "None"
-            print(f"SCHEDULER: Has Service Key? {has_service_key}")
-            print(f"SCHEDULER: DB URL: {masked_url}")
             
-            # Verify Key Role
-            try:
-                if has_service_key:
-                    key = st.secrets["SUPABASE_SERVICE_KEY"]
-                    # Naively decode JWT (middle part)
-                    parts = key.split('.')
-                    if len(parts) > 1:
-                        payload = base64.b64decode(parts[1] + "==").decode('utf-8')
-                        claims = json.loads(payload)
-                        print(f"SCHEDULER: Key Role: {claims.get('role', 'unknown')}")
-                    else:
-                        print("SCHEDULER: Key format unknown (not JWT?)")
-            except Exception as e:
-                print(f"SCHEDULER: Error checking key role: {e}")
-
             from datetime import datetime
             now = datetime.utcnow().isoformat()
-            print(f"SCHEDULER: Now (UTC): {now}")
             
-            # 1. Nuclear Option: Analyze Statuses
-            print("SCHEDULER: NUCLEAR QUERY - Analysis")
+            # 1. Get raw count of pending posts (debug visibility)
+            pending_count = supabase.table("scheduled_posts")\
+                .select("id", count="exact")\
+                .eq("status", "pending")\
+                .execute()
             
-            # Check all non-failed rows
-            active_rows = supabase.table("scheduled_posts").select("id, status, scheduled_time").neq("status", "failed").limit(10).execute()
+            total_pending = pending_count.count if hasattr(pending_count, 'count') else len(pending_count.data)
+            print(f"SCHEDULER: Execution at {now} (UTC)")
+            print(f"SCHEDULER: Service Key Present: {has_service_key}")
+            print(f"SCHEDULER: Total Pending Posts in DB: {total_pending}")
             
-            print(f"SCHEDULER: Non-Failed Rows Found: {len(active_rows.data)}")
-            for i, row in enumerate(active_rows.data):
-                print(f"Row {i}: ID={row.get('id')} Status='{row.get('status')}' Time='{row.get('scheduled_time')}'")
-                
-            # Check for ANY pending variation
-            try:
-                # Try case insensitive search if pending is capitalized (unlikely but possible)
-                pending_rows = supabase.table("scheduled_posts").select("id").ilike("status", "pending").execute()
-                print(f"SCHEDULER: 'pending' (Case Insensitive) Count: {len(pending_rows.data)}")
-            except:
-                print("SCHEDULER: ilike not supported or error")
-
-            # 2. Run actual query (for continuity)
+            # 2. Get posts ready to publish NOW
             response = supabase.table("scheduled_posts")\
                 .select("*")\
                 .eq("status", "pending")\
@@ -124,6 +95,12 @@ class PostScheduler:
                 .execute()
                 
             posts_to_publish = response.data
+            print(f"SCHEDULER: Ready to Publish (Time <= Now): {len(posts_to_publish)}")
+            
+            if len(posts_to_publish) > 0:
+                print(f"SCHEDULER: Found {len(posts_to_publish)} posts ready to publish")
+            
+            for post in posts_to_publish:
             print(f"SCHEDULER: Query (<= Now) returned {len(posts_to_publish)} posts")
             
             if len(posts_to_publish) > 0:
