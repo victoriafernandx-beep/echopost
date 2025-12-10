@@ -68,8 +68,14 @@ class PostScheduler:
             # in database.py calls get_supabase_client() without args (Anon key).
             # Or we can update database.py. Let's do it manually here for safety.
             
+            # DEBUG: Log environment
+            import streamlit as st
+            has_service_key = "SUPABASE_SERVICE_KEY" in st.secrets
+            print(f"SCHEDULER: Has Service Key? {has_service_key}")
+            
             from datetime import datetime
             now = datetime.utcnow().isoformat()
+            print(f"SCHEDULER: Checking for posts <= {now}")
             
             response = supabase.table("scheduled_posts")\
                 .select("*")\
@@ -78,6 +84,7 @@ class PostScheduler:
                 .execute()
                 
             posts_to_publish = response.data
+            print(f"SCHEDULER: Query returned {len(posts_to_publish)} posts")
             
             if len(posts_to_publish) > 0:
                 print(f"SCHEDULER: Found {len(posts_to_publish)} posts ready to publish")
