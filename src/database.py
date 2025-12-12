@@ -26,15 +26,24 @@ def get_supabase_client(use_service_role=False):
 
     # Standard client (Anon)
     key = st.secrets["SUPABASE_KEY"]
-    client = create_client(url, key)
     
-    # Try to inject user token if available (only works in Streamlit thread)
+    # Create client with headers if token exists
+    headers = {}
+    is_authed = False
+    
     try:
-        if 'access_token' in st.session_state:
-            client.postgrest.auth(st.session_state.access_token)
+        if 'access_token' in st.session_state and st.session_state.access_token:
+            headers["Authorization"] = f"Bearer {st.session_state.access_token}"
+            is_authed = True
+            # print("DEBUG: Auth token found in session, using authenticated client")
     except:
-        # We are likely in a background thread (scheduler) where st.session_state is inaccessible
         pass
+        
+    client = create_client(url, key, options={"headers": headers}) if is_authed else create_client(url, key)
+    
+    if is_authed:
+        # Also set for postgrest directly just in case
+        client.postgrest.auth(st.session_state.access_token)
         
     return client
 
