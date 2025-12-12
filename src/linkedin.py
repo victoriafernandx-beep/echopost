@@ -77,18 +77,21 @@ def exchange_code_for_token(code):
         # Save token to database for offline access
         from src import database, auth
         user = auth.get_current_user()
-        if user:
-            save_result = database.save_linkedin_token(
-                user_id=user.id,
-                access_token=token_data['access_token'],
-                refresh_token=token_data.get('refresh_token'),
-                expires_in=token_data.get('expires_in')
-            )
-            
-            if not save_result:
-                return False, "Erro crítico: Falha ao salvar token no banco de dados. Verifique os logs."
         
-        return True, "Conectado com sucesso!"
+        if not user:
+            return False, "❌ Erro de Sessão: Usuário não identificado ao conectar. Tente fazer login novamente."
+            
+        save_result = database.save_linkedin_token(
+            user_id=user.id,
+            access_token=token_data['access_token'],
+            refresh_token=token_data.get('refresh_token'),
+            expires_in=token_data.get('expires_in')
+        )
+        
+        if not save_result:
+            return False, "Erro crítico: Falha ao salvar token no banco de dados. Verifique os logs."
+    
+        return True, f"Conectado com sucesso! (ID: {user.id})"
     except Exception as e:
         return False, f"Erro ao conectar: {str(e)}"
 
