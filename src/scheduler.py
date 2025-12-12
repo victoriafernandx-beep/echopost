@@ -76,17 +76,44 @@ class PostScheduler:
             from datetime import datetime
             now = datetime.utcnow().isoformat()
             
-            # 1. Get raw count of pending posts (debug visibility)
+            # 1. Get raw count of pending posts
             pending_count = supabase.table("scheduled_posts")\
                 .select("id", count="exact")\
                 .eq("status", "pending")\
                 .execute()
             
-            total_pending = pending_count.count if hasattr(pending_count, 'count') else len(pending_count.data)
+            initial_count = pending_count.count if hasattr(pending_count, 'count') else len(pending_count.data)
             print(f"SCHEDULER: Execution at {now} (UTC)")
             print(f"SCHEDULER: Service Key Present: {has_service_key}")
-            print(f"SCHEDULER: Total Pending Posts in DB: {total_pending}")
+            print(f"SCHEDULER: Pre-Probe Pending Count: {initial_count}")
             
+            # PROBE: Attempt to write a test record
+            try:
+                probe_data = {
+                    "user_id": "debug_probe",
+                    "content": "Probe Test",
+                    "scheduled_time": now,
+                    "status": "pending"
+                }
+                probe = supabase.table("scheduled_posts").insert(probe_data).execute()
+                print("SCHEDULER: Probe Insert Success")
+                
+                # Check count again
+                pending_count_after = supabase.table("scheduled_posts")\
+                    .select("id", count="exact")\
+                    .eq("status", "pending")\
+                    .execute()
+                new_count = pending_count_after.count if hasattr(pending_count_after, 'count') else len(pending_count_after.data)
+                print(f"SCHEDULER: Post-Probe Pending Count: {new_count}")
+                
+                # Cleanup
+                if probe.data:
+                    supabase.table("scheduled_posts").delete().eq("id", probe.data[0]['id']).execute()
+                    print("SCHEDULER: Probe Cleanup Success")
+                    
+            except Exception as e:
+                print(f"SCHEDULER: PROTOCOL FAILURE - Probe Failed: {e}")
+
             # 2. Get posts ready to publish NOW
             response = supabase.table("scheduled_posts")\
                 .select("*")\
@@ -95,6 +122,9 @@ class PostScheduler:
                 .execute()
                 
             posts_to_publish = response.data
+            # Filter out the probe if it wasn't deleted fast enough (unlikely but safe)
+            posts_to_publish = [p for p in posts_to_publish if p['user_id'] != 'debug_probe']
+            
             print(f"SCHEDULER: Ready to Publish (Time <= Now): {len(posts_to_publish)}")
             
             if len(posts_to_publish) > 0:
