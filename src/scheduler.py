@@ -104,6 +104,19 @@ class PostScheduler:
                 print(f"SCHEDULER: Processing post {post['id']}")
                 self.publish_scheduled_post(post['id'], post)
                 
+            # 3. List recent failures (Debug help)
+            failures = supabase.table("scheduled_posts")\
+                .select("id, error_message, updated_at")\
+                .eq("status", "failed")\
+                .order("updated_at", desc=True)\
+                .limit(3)\
+                .execute()
+            
+            if len(failures.data) > 0:
+                print("SCHEDULER: --- RECENT FAILURES ---")
+                for f in failures.data:
+                    print(f"Failed at {f['updated_at']}: {f.get('error_message', 'No error message')}")
+                    
         except Exception as e:
             print(f"SCHEDULER ERROR checking posts: {e}")
             logger.error(f"Error checking posts to publish: {e}")
