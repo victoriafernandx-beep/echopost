@@ -3,37 +3,39 @@ from src import database
 from src import generator
 import datetime
 
-# Handle OAuth callback
-if "code" in st.query_params:
-    code = st.query_params["code"]
-    from src import linkedin
-    success, message = linkedin.exchange_code_for_token(code)
-    if success:
-        st.success("✅ LinkedIn conectado com sucesso!")
-        # Clear query params to avoid re-execution
-        st.query_params.clear()
-    else:
-        st.error(f"❌ Erro ao conectar: {message}")
-
-st.set_page_config(
-    page_title="LinPost - Conteúdo Inteligente para LinkedIn",
-    page_icon="assets/logo-icon.png",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
 # ============================================
 # AUTHENTICATION
 # ============================================
 from src import auth
 
-# Initialize auth state
+# Initialize auth state (MUST BE FIRST)
 auth.init_session_state()
 user = auth.get_current_user()
 
 # Initialize Scheduler
 from src import scheduler
 scheduler.start_scheduler()
+
+# Handle OAuth callback (AFTER auth init so user session exists)
+if "code" in st.query_params:
+    code = st.query_params["code"]
+    from src import linkedin
+    
+    # If user is not loaded yet (e.g. first load after redirect), try to restore session
+    if not user:
+         st.warning("Restaurando sessão do usuário...")
+         # Trigger re-run or rely on persistance? 
+         # Usually init_session_state handles it.
+    
+    success, message = linkedin.exchange_code_for_token(code)
+    if success:
+        st.success("✅ LinkedIn conectado com sucesso!")
+        time.sleep(1) # Give time to read
+        # Clear query params to avoid re-execution
+        st.query_params.clear()
+        st.rerun() # Rerun to refresh state
+    else:
+        st.error(f"❌ Erro ao conectar: {message}")
 
 if not user:
     # Sidebar logo
