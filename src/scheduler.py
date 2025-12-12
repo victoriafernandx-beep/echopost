@@ -111,6 +111,25 @@ class PostScheduler:
                     supabase.table("scheduled_posts").delete().eq("id", probe.data[0]['id']).execute()
                     print("SCHEDULER: Probe Cleanup Success")
                     
+                # PROBE 2: Check User Connections (masked)
+                try:
+                    connections = supabase.table("user_connections")\
+                        .select("user_id, provider, updated_at")\
+                        .execute()
+                    
+                    if connections.data:
+                        print(f"SCHEDULER: Found {len(connections.data)} connected users.")
+                        for conn in connections.data:
+                             # Mask user ID for privacy but show enough to identify
+                             uid = conn.get('user_id', 'unknown')
+                             masked_uid = f"{uid[:4]}...{uid[-4:]}" if len(uid) > 8 else uid
+                             print(f"User {masked_uid} connected to {conn.get('provider')} at {conn.get('updated_at')}")
+                    else:
+                        print("SCHEDULER: NO CONNECTED USERS FOUND IN DB!")
+                        
+                except Exception as conn_err:
+                     print(f"SCHEDULER: Error checking connections: {conn_err}")
+
             except Exception as e:
                 print(f"SCHEDULER: PROTOCOL FAILURE - Probe Failed: {e}")
 
