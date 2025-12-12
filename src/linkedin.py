@@ -78,12 +78,15 @@ def exchange_code_for_token(code):
         from src import database, auth
         user = auth.get_current_user()
         if user:
-            database.save_linkedin_token(
+            save_result = database.save_linkedin_token(
                 user_id=user.id,
                 access_token=token_data['access_token'],
                 refresh_token=token_data.get('refresh_token'),
                 expires_in=token_data.get('expires_in')
             )
+            
+            if not save_result:
+                return False, "Erro crítico: Falha ao salvar token no banco de dados. Verifique os logs."
         
         return True, "Conectado com sucesso!"
     except Exception as e:

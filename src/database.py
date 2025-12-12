@@ -313,6 +313,8 @@ def get_upcoming_scheduled_posts(user_id, days=7):
 
 def save_linkedin_token(user_id, access_token, refresh_token=None, expires_in=None):
     """Save LinkedIn token to database for offline access"""
+    # DEBUG: print
+    print(f"DEBUG: Saving token for user {user_id}")
     supabase = get_supabase_client()
     
     # Calculate expiration timestamp
@@ -332,9 +334,11 @@ def save_linkedin_token(user_id, access_token, refresh_token=None, expires_in=No
     try:
         # Upsert: insert or update if exists
         response = supabase.table("user_connections").upsert(data).execute()
+        print(f"DEBUG: Token saved successfully. Response: {response.data}")
         return response
     except Exception as e:
         print(f"Error saving token: {e}")
+        st.error(f"Erro de Banco de Dados ao salvar token: {e}")
         return None
 
 def get_linkedin_token(user_id):
