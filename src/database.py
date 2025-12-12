@@ -324,7 +324,9 @@ def save_linkedin_token(user_id, access_token, refresh_token=None, expires_in=No
     """Save LinkedIn token to database for offline access"""
     # DEBUG: print
     print(f"DEBUG: Saving token for user {user_id}")
-    supabase = get_supabase_client()
+    # Use Service Role to ensure we can write to the DB regardless of RLS
+    # This is critical for avoiding 'silent failures' in Streamlit Cloud
+    supabase = get_supabase_client(use_service_role=True)
     
     # Calculate expiration timestamp
     expires_at = None
