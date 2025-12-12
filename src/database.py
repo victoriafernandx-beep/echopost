@@ -346,6 +346,18 @@ def save_linkedin_token(user_id, access_token, refresh_token=None, expires_in=No
         # Upsert: insert or update if exists
         response = supabase.table("user_connections").upsert(data).execute()
         print(f"DEBUG: Token saved successfully. Response: {response.data}")
+        
+        # VERIFY WRITE
+        verify = supabase.table("user_connections").select("*").eq("user_id", user_id).execute()
+        if verify.data:
+             print(f"DEBUG: VERIFICATION SUCCESS! Found {len(verify.data)} row(s).")
+             # Inject a visual confirmation for the user
+             st.toast(f"Tudo certo! Token salvo e verificado. (ID: {user_id[-4:]})", icon="💾")
+        else:
+             print(f"DEBUG: VERIFICATION FAILED! Row not found after insert.")
+             st.error("ERRO CRÍTICO: O banco de dados confirmou a gravação mas os dados sumiram. Contate o suporte.")
+             return None
+             
         return response
     except Exception as e:
         print(f"Error saving token: {e}")
