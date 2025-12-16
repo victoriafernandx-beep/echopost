@@ -349,7 +349,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     
     # WhatsApp Bot Link
-    wa_number = "5511999999999" # Placeholder default
+    wa_number = "15550396528" # Bot Number (US Test Number)
     if "WHATSAPP_NUMBER" in st.secrets:
         wa_number = st.secrets["WHATSAPP_NUMBER"]
     
