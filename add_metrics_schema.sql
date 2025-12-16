@@ -1,0 +1,6 @@
+-- Add metrics columns to posts table
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS comments_count INTEGER DEFAULT 0;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS shares_count INTEGER DEFAULT 0;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS views_count INTEGER DEFAULT 0;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS styles JSONB DEFAULT '{}'; -- To store analyzed style tags

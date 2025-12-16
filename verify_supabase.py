@@ -32,9 +32,9 @@ supabase = create_client(url, key)
 print(f"Connecting to {url}...")
 
 try:
-    # Try to select from the posts table
-    response = supabase.table("posts").select("*").limit(1).execute()
-    print("Success! Table 'posts' exists and is accessible.")
+    # Try to select from the posts table with new columns
+    response = supabase.table("posts").select("id, likes_count, styles").limit(1).execute()
+    print("Success! Table 'posts' has the new columns.")
     print(f"Data: {response.data}")
 except Exception as e:
     print(f"Error: {e}")

@@ -68,72 +68,18 @@ class PostScheduler:
             # in database.py calls get_supabase_client() without args (Anon key).
             # Or we can update database.py. Let's do it manually here for safety.
             
-            # DEBUG: Log environment (Keep simple for production)
-            import streamlit as st
-            # Check for Service Key presence only
-            has_service_key = "SUPABASE_SERVICE_KEY" in st.secrets
-            
-            from datetime import datetime
-            now = datetime.utcnow().isoformat()
-            
             # 1. Get raw count of pending posts
             pending_count = supabase.table("scheduled_posts")\
                 .select("id", count="exact")\
                 .eq("status", "pending")\
                 .execute()
             
-            initial_count = pending_count.count if hasattr(pending_count, 'count') else len(pending_count.data)
-            print(f"SCHEDULER: Execution at {now} (UTC)")
-            print(f"SCHEDULER: Service Key Present: {has_service_key}")
-            print(f"SCHEDULER: Pre-Probe Pending Count: {initial_count}")
-            
-            # PROBE: Attempt to write a test record
-            try:
-                probe_data = {
-                    "user_id": "debug_probe",
-                    "content": "Probe Test",
-                    "scheduled_time": now,
-                    "status": "pending"
-                }
-                probe = supabase.table("scheduled_posts").insert(probe_data).execute()
-                print("SCHEDULER: Probe Insert Success")
-                
-                # Check count again
-                pending_count_after = supabase.table("scheduled_posts")\
-                    .select("id", count="exact")\
-                    .eq("status", "pending")\
-                    .execute()
-                new_count = pending_count_after.count if hasattr(pending_count_after, 'count') else len(pending_count_after.data)
-                print(f"SCHEDULER: Post-Probe Pending Count: {new_count}")
-                
-                # Cleanup
-                if probe.data:
-                    supabase.table("scheduled_posts").delete().eq("id", probe.data[0]['id']).execute()
-                    print("SCHEDULER: Probe Cleanup Success")
-                    
-                # PROBE 2: Check User Connections (masked)
-                try:
-                    connections = supabase.table("user_connections")\
-                        .select("user_id, provider, updated_at")\
-                        .execute()
-                    
-                    if connections.data:
-                        print(f"SCHEDULER: Found {len(connections.data)} connected users.")
-                        for conn in connections.data:
-                             # Mask user ID for privacy but show enough to identify
-                             uid = conn.get('user_id', 'unknown')
-                             masked_uid = f"{uid[:4]}...{uid[-4:]}" if len(uid) > 8 else uid
-                             print(f"User {masked_uid} connected to {conn.get('provider')} at {conn.get('updated_at')}")
-                    else:
-                        print("SCHEDULER: NO CONNECTED USERS FOUND IN DB!")
-                        
-                except Exception as conn_err:
-                     print(f"SCHEDULER: Error checking connections: {conn_err}")
+            logger.info(f"SCHEDULER Check: {len(pending_count.data)} pending posts found")
 
-            except Exception as e:
-                print(f"SCHEDULER: PROTOCOL FAILURE - Probe Failed: {e}")
 
             # 2. Get posts ready to publish NOW
+            now = datetime.utcnow().isoformat()
+            
             response = supabase.table("scheduled_posts")\
                 .select("*")\
                 .eq("status", "pending")\
@@ -141,16 +87,11 @@ class PostScheduler:
                 .execute()
                 
             posts_to_publish = response.data
-            # Filter out the probe if it wasn't deleted fast enough (unlikely but safe)
-            posts_to_publish = [p for p in posts_to_publish if p['user_id'] != 'debug_probe']
             
-            print(f"SCHEDULER: Ready to Publish (Time <= Now): {len(posts_to_publish)}")
-            
-            if len(posts_to_publish) > 0:
-                print(f"SCHEDULER: Found {len(posts_to_publish)} posts ready to publish")
+            logger.info(f"SCHEDULER: Found {len(posts_to_publish)} posts ready to publish")
             
             for post in posts_to_publish:
-                print(f"SCHEDULER: Processing post {post['id']}")
+                logger.info(f"SCHEDULER: Processing post {post['id']}")
                 self.publish_scheduled_post(post['id'], post)
                 
             # 3. List recent failures (Debug help)

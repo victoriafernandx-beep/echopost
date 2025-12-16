@@ -63,7 +63,19 @@ def logout():
     
     st.session_state.user = None
     # Clear other session data
-    keys_to_clear = ['linkedin_access_token', 'linkedin_token_expires_in']
+    keys_to_clear = ['linkedin_access_token', 'linkedin_token_expires_in', 'access_token']
     for key in keys_to_clear:
         if key in st.session_state:
             del st.session_state[key]
+
+def get_user_from_token(token):
+    """Retrieve user using an existing access token"""
+    supabase = database.init_supabase()
+    try:
+        response = supabase.auth.get_user(token)
+        if response and response.user:
+            return response.user
+        return None
+    except Exception as e:
+        # Token invalid or expired
+        return None

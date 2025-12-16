@@ -1,0 +1,30 @@
+services:
+  # Service 1: The Main Web App (Streamlit)
+  - type: web
+    name: echopost-app
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: STREAMLIT_SERVER_ADDRESS
+        value: 0.0.0.0
+      - key: STREAMLIT_SERVER_PORT
+        value: 10000
+
+  # Service 2: The WhatsApp Bot (Flask API)
+  - type: web
+    name: echopost-bot
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --chdir whatsapp-bot app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: FLASK_APP
+        value: whatsapp-bot/app.py

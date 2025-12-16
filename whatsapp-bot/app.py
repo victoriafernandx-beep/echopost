@@ -4,8 +4,12 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 from rate_limiter import RateLimiter
+from supabase import create_client, Client
 
-load_dotenv()
+from pathlib import Path
+# Load .env from parent directory
+env_path = Path(__file__).resolve().parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 app = Flask(__name__)
 
@@ -14,12 +18,33 @@ VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "echopost_webhook_2024")
 WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN")
 PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 # Configurar OpenAI
 client = OpenAI(api_key=OPENAI_API_KEY)
 
+# Configurar Supabase
+supabase: Client = None
+if SUPABASE_URL and SUPABASE_KEY:
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print("✅ Supabase conectado!")
+    except Exception as e:
+        print(f"❌ Erro ao conectar Supabase: {e}")
+
 # Rate limiter (5 messages per minute)
 rate_limiter = RateLimiter(max_messages=5, time_window=60)
+
+def validate_message(text):
+    """Simple checks for malicious content"""
+    if len(text) > 1000:
+        raise ValueError("Mensagem muito longa (limite 1000 caracteres)")
+        
+    suspicious = ['system:', 'ignore previous', 'jailbreak']
+    if any(s in text.lower() for s in suspicious):
+        raise ValueError("Conteúdo inválido detectado")
+    return text
 
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
@@ -89,6 +114,12 @@ def process_whatsapp_message(data):
         if message_type == 'text':
             text = message['text']['body']
             print(f"💬 Texto: {text}")
+
+            try:
+                text = validate_message(text)
+            except ValueError as e:
+                send_whatsapp_message(from_number, f"⛔ {str(e)}")
+                return
             
             # Check for commands
             if text.startswith('/'):
@@ -96,7 +127,7 @@ def process_whatsapp_message(data):
                 send_whatsapp_message(from_number, response)
                 return
             
-            response = generate_post_from_text(text)
+            response = generate_post_from_text(text, from_number)
             send_whatsapp_message(from_number, response)
         
         elif message_type == 'audio':
@@ -109,7 +140,7 @@ def process_whatsapp_message(data):
             print(f"📝 Transcrição: {transcription}")
             
             # Gerar post
-            response = generate_post_from_text(transcription)
+            response = generate_post_from_text(transcription, from_number)
             send_whatsapp_message(from_number, response)
         
         else:
@@ -195,33 +226,35 @@ Exemplo: "Dica sobre produtividade: use a técnica Pomodoro"
 
 Digite /help para ver os comandos disponíveis."""
 
-def generate_post_from_text(text):
+def generate_post_from_text(text, from_number):
     """Gerar post profissional usando OpenAI"""
     
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "Você é um especialista em criar posts profissionais para LinkedIn."},
-                {"role": "user", "content": f"""Transforme o seguinte texto/ideia em um post envolvente e profissional:
+                {"role": "system", "content": """Você é um estrategista de conteúdo B2B especializado em LinkedIn.
+SEU ESTILO DE ESCRITA (RITMO E ESTRUTURA):
+Você NÃO escreve blocos de texto. Você escreve "poesia corporativa" (frases curtas, ritmo visual).
+Use dualismos ("Growth descobre X / CRM descobre Y").
+Use bullets (📈, 📉, ✔) para impacto.
+NÃO use hashtags no meio do texto.
+NÃO use linguagem de "coach motivacional".
+Seja cirúrgico, sênior e direto."""},
+                {"role": "user", "content": f"""Transforme o seguinte insight/áudio em um post seguindo RIGOROSAMENTE o estilo rítmico descrito:
 
 "{text}"
 
-O post deve:
-- Começar com um gancho forte
-- Ser claro e objetivo
-- Ter tom profissional mas acessível
-- Usar emojis estrategicamente (máximo 3-4)
-- Ter entre 150-250 palavras
-- Terminar com uma pergunta ou call-to-action
-
-Retorne APENAS o texto do post, sem explicações adicionais."""}
+Retorne APENAS o texto do post."""}
             ],
             temperature=0.7,
             max_tokens=500
         )
         
         post = response.choices[0].message.content.strip()
+        
+        # Salvar no Supabase
+        save_post_to_db(post, from_number)
         
         # Adicionar cabeçalho
         final_message = f"""✨ *Post gerado com IA!*
@@ -233,39 +266,75 @@ Retorne APENAS o texto do post, sem explicações adicionais."""}
 💡 Edite como preferir antes de publicar!"""
         
         return final_message
-    
+
     except Exception as e:
         print(f"❌ Erro ao gerar post: {e}")
         return f"❌ Desculpe, houve um erro ao gerar o post: {str(e)}"
 
+def save_post_to_db(content, from_number):
+    """Salvar post no Supabase"""
+    if not supabase:
+        print("⚠️ Supabase não configurado, pulando salvamento.")
+        return
+
+    try:
+        # Tentar encontrar usuário pelo telefone ou usar um ID padrão
+        # Por enquanto vamos usar um ID fixo para o bot ou tentar inferir
+        user_id = os.getenv("WHATSAPP_BOT_USER_ID", "whatsapp-bot")
+
+        data = {
+            "content": content,
+            "user_id": user_id,
+            "topic": "WhatsApp Generated",
+            "source": "whatsapp",  # Campo novo se precisarmos ou usar tags
+            "tags": ["whatsapp", f"phone_{from_number}"],
+            "created_at": "now()"
+        }
+
+        response = supabase.table("posts").insert(data).execute()
+        print(f"💾 Post salvo no banco: ID {response.data[0]['id']}")
+        return response.data[0]['id']
+
+    except Exception as e:
+        print(f"❌ Erro ao salvar no banco: {e}")
+
 def transcribe_audio(audio_url):
     """Transcrever áudio usando OpenAI Whisper"""
+    import tempfile
+    import os
     
+    temp_path = None
     try:
         # Baixar áudio
         audio_data = download_media(audio_url)
         
-        # Salvar temporariamente
-        temp_file = "/tmp/audio.ogg"
-        with open(temp_file, 'wb') as f:
-            f.write(audio_data)
-        
+        # Salvar temporariamente de forma segura
+        # delete=False is mandatory for Windows compatibility when re-opening the file
+        with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as temp_file:
+            temp_file.write(audio_data)
+            temp_file.flush()
+            temp_path = temp_file.name
+            
         # Transcrever com Whisper
-        with open(temp_file, 'rb') as audio_file:
+        with open(temp_path, 'rb') as audio_file:
             transcription = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=audio_file,
                 language="pt"
             )
         
-        # Limpar arquivo temporário
-        os.remove(temp_file)
-        
         return transcription.text.strip()
     
     except Exception as e:
         print(f"❌ Erro ao transcrever áudio: {e}")
         return "Erro ao transcrever áudio"
+    finally:
+        # Secure cleanup
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except Exception as e:
+                print(f"⚠️ Warning: Could not delete temp file {temp_path}: {e}")
 
 def get_media_url(media_id):
     """Obter URL do arquivo de mídia"""

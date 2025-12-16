@@ -1,39 +1,66 @@
 import streamlit as st
 from src import database
 from src import generator
+import importlib
+importlib.reload(database)
 import datetime
+from dotenv import load_dotenv
+import os
+
+# Load environment variables (Force reload)
+load_dotenv(override=True)
+
+# Debug: Check if key exists
+if not os.getenv("OPENAI_API_KEY"):
+    st.sidebar.error("❌ API Key não encontrada no ambiente!")
+else:
+    st.sidebar.success("✅ API Key carregada com sucesso.")
 
 # ============================================
 # AUTHENTICATION
 # ============================================
 from src import auth
+import extra_streamlit_components as stx
+import importlib
+importlib.reload(auth)
 
-# Initialize auth state (MUST BE FIRST)
+# Initialize Cookie Manager
+cookie_manager = stx.CookieManager()
+
+# Init Session State
 auth.init_session_state()
+
+# 1. Check Cookies for token BEFORE anything else
+if "user" not in st.session_state or st.session_state.user is None:
+    cookies = cookie_manager.get_all()
+    # Wait for cookies to be ready (stx quirk)
+    if cookies: 
+        token = cookies.get("echopost_token")
+        if token:
+            # Restore session from token (simplified: in real app, verify JWT)
+            # Here we trust the token is the user email/id for simplicity in this dev environment
+            # OR we try to login via Supabase if token is an access_token.
+            # Let's assume the token IS the access_token.
+             user_restored = auth.get_user_from_token(token)
+             if user_restored:
+                 st.session_state.user = user_restored
+                 st.session_state.access_token = token
+                 st.rerun()
+
 user = auth.get_current_user()
 
-# Initialize Scheduler
-from src import scheduler
-scheduler.start_scheduler()
+# Scheduler initialized later in the file
 
 # Handle OAuth callback (AFTER auth init so user session exists)
 if "code" in st.query_params:
     code = st.query_params["code"]
     from src import linkedin
-    
-    # If user is not loaded yet (e.g. first load after redirect), try to restore session
-    if not user:
-         st.warning("Restaurando sessão do usuário...")
-         # Trigger re-run or rely on persistance? 
-         # Usually init_session_state handles it.
-    
+    # ... (same as before) ...
     success, message = linkedin.exchange_code_for_token(code)
     if success:
         st.success("✅ LinkedIn conectado com sucesso!")
-        time.sleep(1) # Give time to read
-        # Clear query params to avoid re-execution
         st.query_params.clear()
-        st.rerun() # Rerun to refresh state
+        st.rerun()
     else:
         st.error(f"❌ Erro ao conectar: {message}")
 
@@ -56,6 +83,10 @@ if not user:
             if submitted:
                 success, msg = auth.login(email, password)
                 if success:
+                    # SET COOKIE
+                    token = st.session_state.get("access_token", "dummy_token")
+                    cookie_manager.set("echopost_token", token, key="set_auth_cookie", expires_at=datetime.datetime.now() + datetime.timedelta(days=30))
+                    
                     st.success(msg)
                     st.rerun()
                 else:
@@ -81,8 +112,17 @@ if not user:
 with st.sidebar:
     st.markdown("---")
     st.write(f"👤 {user.email}")
+    
+    # Check if we have a token cookie to clear
+    # Note: stx.CookieManager is already initialized as cookie_manager at top
+    
     if st.button("Sair", use_container_width=True):
         auth.logout()
+        # Delete cookie
+        try:
+            cookie_manager.delete("echopost_token")
+        except:
+             pass
         st.rerun()
 
 # Initialize scheduler for automatic post publishing
@@ -307,6 +347,32 @@ with st.sidebar:
         </p>
     </div>
     """, unsafe_allow_html=True)
+    
+    # WhatsApp Bot Link
+    wa_number = "5511999999999" # Placeholder default
+    if "WHATSAPP_NUMBER" in st.secrets:
+        wa_number = st.secrets["WHATSAPP_NUMBER"]
+    
+    # Sanitize number (remove spaces, +, -, (, )) to ensure wa.me works
+    import re
+    wa_number = re.sub(r'\D', '', str(wa_number))
+    
+    # WhatsApp Button (Green - Custom HTML)
+    st.markdown(f"""
+    <a href="https://wa.me/{wa_number}" target="_blank" style="
+        display: block;
+        background: linear-gradient(135deg, #25D366 0%, #1EBE57 100%);
+        color: white !important;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: 0 10px 20px -5px rgba(37, 211, 102, 0.4);
+        transition: all 0.2s ease;
+        margin-bottom: 1rem;
+    ">💬 Falar com Bot no WhatsApp</a>
+    """, unsafe_allow_html=True)
 
 # Helper for programmatic navigation
 def navigate_to(page):
@@ -506,121 +572,201 @@ elif page == "📊 Dashboard":
 elif page == "📚 Biblioteca":
     st.markdown("### 📚 Sua Biblioteca de Conteúdo")
 
-    # Search and Filter Section
-    st.markdown("### 🔍 Buscar Posts")
-    
-    user_id = st.session_state.user.id
-    
-    # Search and filter controls
-    col_search, col_tags, col_fav = st.columns([3, 2, 1])
-    
-    with col_search:
-        search_query = st.text_input("🔎 Buscar por conteúdo ou tópico", placeholder="Digite para buscar...", label_visibility="collapsed")
-    
-    with col_tags:
-        all_tags = database.get_all_tags(user_id)
-        selected_tags = st.multiselect("🏷️ Filtrar por tags", all_tags, placeholder="Todas as tags")
-    
-    with col_fav:
-        show_favorites = st.checkbox("⭐ Favoritos", value=False)
-    
-    # Search posts
-    if search_query or selected_tags or show_favorites:
-        posts = database.search_posts(user_id, query=search_query, tags=selected_tags, favorites_only=show_favorites)
-    else:
-        posts = database.get_posts(user_id)
-    
-    st.markdown(f"**{len(posts)} posts encontrados**")
-    st.markdown("---")
-    
-    if posts:
-        for idx, post in enumerate(posts):
-            topic = post.get('topic', 'Sem tópico')
-            content = post.get('content', '')
-            created_at = post.get('created_at', '')
-            post_id = post.get('id')
-            post_tags = post.get('tags', [])
-            is_favorite = post.get('is_favorite', False)
-            
-            # Format date
-            try:
-                date_obj = datetime.datetime.fromisoformat(created_at.replace('Z', '+00:00'))
-                formatted_date = date_obj.strftime('%d/%m/%Y às %H:%M')
-            except:
-                formatted_date = created_at
-            
-            # Create card with tags
-            tags_html = ""
-            if post_tags:
-                tags_html = "<div style='margin-top: 0.5rem;'>"
-                for tag in post_tags:
-                    tags_html += f"<span style='background: {current_theme['purple_neon']}; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; margin-right: 0.25rem; display: inline-block;'>🏷️ {tag}</span>"
-                tags_html += "</div>"
-            
-            fav_icon = "⭐" if is_favorite else "☆"
-            
-            st.markdown(f'''
-            <div class="post-card">
-                <div style="display: flex; justify-content: space-between; align-items: start;">
-                    <div class="post-topic">{topic}</div>
-                    <div style="font-size: 1.5rem; cursor: pointer;">{fav_icon}</div>
-                </div>
-                <div class="post-meta">📅 {formatted_date} • {len(content)} caracteres</div>
-                <div class="post-content">{content}</div>
-                {tags_html}
-            </div>
-            ''', unsafe_allow_html=True)
-            
-            # Action Buttons Row
-            col_actions = st.columns([1, 1, 1, 3])
-            
-            with col_actions[0]:
-                if st.button("🗑️", key=f"del_{idx}", help="Deletar Post"):
-                    database.delete_post(post_id)
-                    st.rerun()
-            
-            with col_actions[1]:
-                fav_label = "⭐" if is_favorite else "☆"
-                if st.button(fav_label, key=f"fav_{idx}", help="Favoritar"):
-                    database.toggle_favorite(post_id, not is_favorite)
-                    st.rerun()
-            
-            with col_actions[2]:
-                if st.button("📋", key=f"copy_{idx}", help="Copiar Conteúdo"):
-                    st.code(content, language=None)
-                    st.toast("Conteúdo copiado para a área de transferência!", icon="📋")
+    tab_lib, tab_import = st.tabs(["📂 Meus Posts", "📥 Importar Manual"])
 
-            with col_actions[3]:
-                # Tag management in a cleaner way
-                with st.popover("🏷️ Gerenciar Tags"):
-                    # Ensure post_tags is always a list
-                    safe_post_tags = post_tags if post_tags is not None else []
-                    
-                    current_tags = st.multiselect(
-                        "Tags do post",
-                        options=all_tags + ["+ Nova tag"],
-                        default=safe_post_tags,
-                        key=f"tags_{idx}"
-                    )
-                    
-                    if "+ Nova tag" in current_tags:
-                        new_tag = st.text_input("Nome da nova tag", key=f"new_tag_{idx}")
-                        if new_tag and st.button("Criar Tag", key=f"add_tag_{idx}"):
-                            current_tags.remove("+ Nova tag")
-                            current_tags.append(new_tag)
-                            database.update_post_tags(post_id, current_tags)
+    with tab_import:
+        st.markdown("#### Importar Post Antigo")
+        st.info("Traga seus posts de sucesso para o EchoPost para treinar sua IA e popular seu dashboard.")
+        
+        with st.form("import_post_form"):
+            col1, col2 = st.columns([2, 1])
+            with col1:
+                import_content = st.text_area("Cole o texto do post aqui:", height=200)
+                import_topic = st.text_input("Qual era o tópico principal?", placeholder="Ex: Liderança, Vendas...")
+                import_date = st.date_input("Data da publicação original")
+            
+            with col2:
+                st.markdown("**Métricas (Opcional)**")
+                imp_likes = st.number_input("Likes", min_value=0, step=1)
+                imp_comments = st.number_input("Comentários", min_value=0, step=1)
+                imp_views = st.number_input("Visualizações", min_value=0, step=100)
+                
+            submitted_import = st.form_submit_button("📥 Importar e Analisar Estilo", type="primary", use_container_width=True)
+            
+            if submitted_import:
+                if import_content:
+                    with st.spinner("Analisando estilo e salvando..."):
+                        # 1. Analyze Style
+                        from src import advanced_ai, database
+                        style_dna = advanced_ai.analyze_style_dna(import_content)
+                        
+                        # 2. Save to DB with backdated time and metrics
+                        # Convert date to datetime string
+                        import datetime
+                        created_dt = datetime.datetime.combine(import_date, datetime.datetime.min.time()).isoformat()
+                        
+                        metrics = {
+                            "likes": imp_likes,
+                            "comments": imp_comments,
+                            "views": imp_views
+                        }
+                        
+                        # Create post
+                        user_id = st.session_state.user.id
+                        # Tag as imported
+                        tags = ["Importado"] + style_dna.get('keywords', [])
+                        
+                        result = database.create_post(
+                            user_id, 
+                            import_content, 
+                            import_topic or "Post Importado", 
+                            tags=tags,
+                            metrics=metrics,
+                            created_at=created_dt
+                        )
+                        
+                        if result:
+                            st.success("✅ Post importado com sucesso!")
+                            
+                            # Show DNA
+                            st.markdown("#### 🧬 DNA do Estilo Detectado")
+                            c1, c2, c3 = st.columns(3)
+                            with c1:
+                                st.info(f"**Tom:** {style_dna.get('tone')}")
+                            with c2:
+                                st.info(f"**Estrutura:** {style_dna.get('structure')}")
+                            with c3:
+                                st.info(f"**Emojis:** {style_dna.get('emoji_usage')}")
+                                
+                            st.toast("Post salvo no histórico!", icon="💾")
+                            time.sleep(2)
                             st.rerun()
-                    
-                    # Safe comparison
-                    if set(current_tags) != set(safe_post_tags) and "+ Nova tag" not in current_tags:
-                        if st.button("Salvar Alterações", key=f"save_tags_{idx}"):
-                            database.update_post_tags(post_id, current_tags)
-                            st.rerun()
-    else:
+                        
+                else:
+                    st.warning("Cole o conteúdo do post.")
+
+    with tab_lib:
+        # Search and Filter Section
+        st.markdown("### 🔍 Buscar Posts")
+        
+        user_id = st.session_state.user.id
+        
+        # Search and filter controls
+        col_search, col_tags, col_fav = st.columns([3, 2, 1])
+        
+        with col_search:
+            search_query = st.text_input("🔎 Buscar por conteúdo ou tópico", placeholder="Digite para buscar...", label_visibility="collapsed")
+        
+        with col_tags:
+            all_tags = database.get_all_tags(user_id)
+            selected_tags = st.multiselect("🏷️ Filtrar por tags", all_tags, placeholder="Todas as tags")
+        
+        with col_fav:
+            show_favorites = st.checkbox("⭐ Favoritos", value=False)
+        
+        # Search posts
         if search_query or selected_tags or show_favorites:
-            st.info("🔍 Nenhum post encontrado com esses filtros.")
+            posts = database.search_posts(user_id, query=search_query, tags=selected_tags, favorites_only=show_favorites)
         else:
-            st.info("🎯 Nenhum post encontrado. Vá ao Gerador de Posts para criar um!")
+            posts = database.get_posts(user_id)
+        
+        st.markdown(f"**{len(posts)} posts encontrados**")
+        st.markdown("---")
+        
+        if posts:
+            for idx, post in enumerate(posts):
+                topic = post.get('topic', 'Sem tópico')
+                content = post.get('content', '')
+                created_at = post.get('created_at', '')
+                post_id = post.get('id')
+                post_tags = post.get('tags', [])
+                is_favorite = post.get('is_favorite', False)
+                source = post.get('source', '')
+                
+                source_badge = ""
+                if source == 'whatsapp':
+                    # WhatsApp Green Badge
+                    source_badge = "&nbsp;<span style='background-color: #25D366; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75em; vertical-align: middle;'>WhatsApp</span>"
+                
+                # Format date
+                try:
+                    date_obj = datetime.datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                    formatted_date = date_obj.strftime('%d/%m/%Y às %H:%M')
+                except:
+                    formatted_date = created_at
+                
+                # Create card with tags
+                tags_html = ""
+                if post_tags:
+                    tags_html = "<div style='margin-top: 0.5rem;'>"
+                    for tag in post_tags:
+                        tags_html += f"<span style='background: {current_theme['purple_neon']}; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; margin-right: 0.25rem; display: inline-block;'>🏷️ {tag}</span>"
+                    tags_html += "</div>"
+                
+                fav_icon = "⭐" if is_favorite else "☆"
+                
+                st.markdown(f'''
+                <div class="post-card">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div class="post-topic">{topic}{source_badge}</div>
+                        <div style="font-size: 1.5rem; cursor: pointer;">{fav_icon}</div>
+                    </div>
+                    <div class="post-meta">📅 {formatted_date} • {len(content)} caracteres</div>
+                    <div class="post-content">{content}</div>
+                    {tags_html}
+                </div>
+                ''', unsafe_allow_html=True)
+                
+                # Action Buttons Row
+                col_actions = st.columns([1, 1, 1, 3])
+                
+                with col_actions[0]:
+                    if st.button("🗑️", key=f"del_{idx}", help="Deletar Post"):
+                        database.delete_post(post_id, user_id)
+                        st.rerun()
+                
+                with col_actions[1]:
+                    fav_label = "⭐" if is_favorite else "☆"
+                    if st.button(fav_label, key=f"fav_{idx}", help="Favoritar"):
+                        database.toggle_favorite(post_id, not is_favorite, user_id)
+                        st.rerun()
+                
+                with col_actions[2]:
+                    if st.button("📋", key=f"copy_{idx}", help="Copiar Conteúdo"):
+                        st.code(content, language=None)
+                        st.toast("Conteúdo copiado para a área de transferência!", icon="📋")
+
+                with col_actions[3]:
+                    # Tag management in a cleaner way
+                    with st.popover("🏷️ Gerenciar Tags"):
+                        # Ensure post_tags is always a list
+                        safe_post_tags = post_tags if post_tags is not None else []
+                        
+                        current_tags = st.multiselect(
+                            "Tags do post",
+                            options=all_tags + ["+ Nova tag"],
+                            default=safe_post_tags,
+                            key=f"tags_{idx}"
+                        )
+                        
+                        if "+ Nova tag" in current_tags:
+                            new_tag = st.text_input("Nome da nova tag", key=f"new_tag_{idx}")
+                            if new_tag and st.button("Criar Tag", key=f"add_tag_{idx}"):
+                                current_tags.remove("+ Nova tag")
+                                current_tags.append(new_tag)
+                                database.update_post_tags(post_id, current_tags, user_id)
+                                st.rerun()
+                        
+                        # Safe comparison
+                        if set(current_tags) != set(safe_post_tags) and "+ Nova tag" not in current_tags:
+                            if st.button("Salvar Alterações", key=f"save_tags_{idx}"):
+                                database.update_post_tags(post_id, current_tags, user_id)
+                                st.rerun()
+        else:
+            if search_query or selected_tags or show_favorites:
+                st.info("🔍 Nenhum post encontrado com esses filtros.")
+            else:
+                st.info("🎯 Nenhum post encontrado. Vá ao Gerador de Posts para criar um!")
 
 
 
@@ -687,46 +833,177 @@ elif page == "✨ Gerador de Posts":
                         st.session_state['last_post'] = f"{phrase}\n\n{st.session_state.get('last_post', '')}"
                         st.rerun()
     
-    # Post Generation Form
-    with st.form(key="post_generator_form", clear_on_submit=False):
-        st.markdown(f"""
-        <div style='margin-bottom: 0.75rem;'>
-            <span style='color: {current_theme['deep_black']}; font-size: 0.875rem; font-weight: 600;'>
-                💡 Sobre o que você quer escrever?
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            topic = st.text_input(
-                "topic",
-                value="",
-                placeholder="Ex.: Como IA está mudando o marketing, experiência do cliente em 2025, aprendizados da semana...",
-                label_visibility="collapsed"
-            )
-        
-        with col2:
-            tone = st.selectbox(
-                "Tom do post",
-                ["Profissional", "Casual inteligente", "Inspirador", "Direto e provocativo", "Storytelling humano"],
-                label_visibility="collapsed"
-            )
-        
-        # Submit button
-        submitted = st.form_submit_button("🚀 Gerar Post", use_container_width=True, type="primary")
+    # Generator Tabs
+    gen_tab1, gen_tab3, gen_tab2 = st.tabs(["✨ Do Zero", "🤖 Agente Criativo", "🎙️ De Reunião"])
     
-    # Process form submission
-    if submitted:
-        if topic:
-            with st.spinner("✨ Gerando seu post..."):
-                content = generator.generate_post(topic, tone)
-                st.session_state['last_post'] = content
-                st.session_state['last_topic'] = topic
-                st.success("✅ Post gerado com sucesso!")
-        else:
-            st.warning("⚠️ Por favor, insira um tópico.")
+    with gen_tab3:
+        st.markdown("#### 🤖 Editor Interativo")
+        
+        # Configuration
+        with st.expander("⚙️ Configurar Personalidade do Agente (Opcional)"):
+            import importlib
+            from src import resources
+            importlib.reload(resources)
+            
+            # Identify current user
+            current_user = st.session_state.get("user_id", "user_123")
+            
+            # Load stored setting if session is empty
+            if "custom_agent_prompt" not in st.session_state:
+                saved_prompt = database.get_user_setting(current_user, "custom_agent_prompt")
+                if saved_prompt:
+                    st.session_state["custom_agent_prompt"] = saved_prompt
+
+            if st.button("📄 Carregar Template: Estrategista B2B"):
+                new_prompt = resources.get_b2b_strategist_template()
+                st.session_state["custom_agent_prompt"] = new_prompt
+                # Save immediately
+                database.save_user_setting(current_user, "custom_agent_prompt", new_prompt)
+                
+            custom_persona = st.text_area(
+                "Quem é o agente?", 
+                placeholder="Ex: Aja como um comediante sarcástico que odeia clichês corporativos...",
+                value=st.session_state.get("custom_agent_prompt", ""),
+                help="Defina o tom de voz, estilo de perguntas e objetivo do agente.",
+                height=300
+            )
+            
+            # Save if changed
+            if custom_persona != st.session_state.get("custom_agent_prompt", ""):
+                 st.session_state["custom_agent_prompt"] = custom_persona
+                 database.save_user_setting(current_user, "custom_agent_prompt", custom_persona)
+                 # Reset history if persona changes? Maybe better to keep context or allow manual clear
+                 
+        st.info("Converse com nossa IA para extrair histórias únicas e criar posts mais profundos.")
+        
+        # Initialize chat history
+        if "agent_messages" not in st.session_state:
+            st.session_state.agent_messages = [
+                {"role": "assistant", "content": "Olá! Sou seu editor pessoal. Sobre qual tema você quer escrever hoje? (Ex: Liderança, Vendas, Um erro que cometi...)"}
+            ]
+            
+        # Display chat messages
+        for message in st.session_state.agent_messages:
+            with st.chat_message(message["role"]):
+                st.write(message["content"])
+                
+        # Chat Input
+        if prompt := st.chat_input("Sua resposta..."):
+            # Add user message
+            st.session_state.agent_messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.write(prompt)
+                
+            # Get AI response
+            with st.chat_message("assistant"):
+                with st.spinner("Pensando..."):
+                    import importlib
+                    from src import content_agent
+                    importlib.reload(content_agent)
+                    
+                    # Filter history for API
+                    history = [{"role": m["role"], "content": str(m["content"])} for m in st.session_state.agent_messages]
+                    
+                    # Pass custom prompt from session state
+                    custom_prompt = st.session_state.get("custom_agent_prompt", None)
+                    response = content_agent.get_agent_response(history, custom_system_prompt=custom_prompt)
+                    
+                    ai_msg = response.get("message", "Erro ao processar.")
+                    st.write(ai_msg)
+                    st.session_state.agent_messages.append({"role": "assistant", "content": ai_msg})
+                    
+                    if response.get("is_ready_to_post"):
+                        final_content = response.get("post_content")
+                        if final_content:
+                            st.divider()
+                            st.success("🎉 Post criado!")
+                            if st.button("📝 Usar este rascunho", key="use_agent_draft"):
+                                st.session_state['last_post'] = final_content
+                                st.session_state['agent_messages'] = [] # Clean reset? Maybe keep history
+                                st.rerun()
+
+    with gen_tab2:
+        st.markdown("#### 🎙️ Transforme Reuniões em Posts")
+        st.info("Cole a transcrição ou faça upload de um arquivo de texto (.txt) da sua reunião (Zoom, Teams, Fireflies, Otter).")
+        
+        uploaded_transcript = st.file_uploader("Upload de transcrição (.txt)", type=["txt"])
+        transcript_text = st.text_area("Ou cole o texto aqui:", height=150)
+        
+        if st.button("🔍 Analisar Transcrição", type="primary"):
+            final_transcript = ""
+            if uploaded_transcript:
+                final_transcript = uploaded_transcript.read().decode("utf-8")
+            elif transcript_text:
+                final_transcript = transcript_text
+                
+            if final_transcript:
+                with st.spinner("Extraindo insights da reunião..."):
+                    from src import advanced_ai
+                    ideas = advanced_ai.extract_insights_from_transcript(final_transcript)
+                    st.session_state['transcript_ideas'] = ideas
+                    st.success(f"✅ Encontramos {len(ideas)} ideias!")
+            else:
+                st.warning("Forneça uma transcrição.")
+                
+        # Display Ideas
+        if 'transcript_ideas' in st.session_state and st.session_state['transcript_ideas']:
+            st.markdown("---")
+            st.markdown("#### 💡 Insights Encontrados")
+            
+            ideas_cols = st.columns(3)
+            for i, idea in enumerate(st.session_state['transcript_ideas']):
+                with ideas_cols[i % 3]:
+                    st.info(f"**{idea.get('topic')}**\n\n{idea.get('summary')}")
+                    if st.button(f"✨ Gerar sobre isso", key=f"idea_{i}"):
+                        st.session_state['last_topic'] = f"{idea.get('topic')}: {idea.get('summary')}"
+                        # Clear old post to force regeneration or just set topic context
+                        # Actually, let's auto-generate
+                        with st.spinner("Gerando post..."):
+                             content = generator.generate_post(st.session_state['last_topic'], idea.get('angle', 'Profissional'))
+                             st.session_state['last_post'] = content
+                             st.rerun()
+
+    with gen_tab1:
+        # Post Generation Form
+        with st.form(key="post_generator_form", clear_on_submit=False):
+            st.markdown(f"""
+            <div style='margin-bottom: 0.75rem;'>
+                <span style='color: {current_theme['deep_black']}; font-size: 0.875rem; font-weight: 600;'>
+                    💡 Sobre o que você quer escrever?
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            col1, col2 = st.columns([2, 1])
+            
+            with col1:
+                topic = st.text_input(
+                    "topic",
+                    value="",
+                    placeholder="Ex.: Como IA está mudando o marketing, experiência do cliente em 2025, aprendizados da semana...",
+                    label_visibility="collapsed"
+                )
+            
+            with col2:
+                tone = st.selectbox(
+                    "Tom do post",
+                    ["Profissional", "Casual inteligente", "Inspirador", "Direto e provocativo", "Storytelling humano"],
+                    label_visibility="collapsed"
+                )
+            
+            # Submit button
+            submitted = st.form_submit_button("🚀 Gerar Post", use_container_width=True, type="primary")
+        
+        # Process form submission
+        if submitted:
+            if topic:
+                with st.spinner("✨ Gerando seu post..."):
+                    content = generator.generate_post(topic, tone)
+                    st.session_state['last_post'] = content
+                    st.session_state['last_topic'] = topic
+                    st.success("✅ Post gerado com sucesso!")
+            else:
+                st.warning("⚠️ Por favor, insira um tópico.")
     
     if 'last_post' in st.session_state:
         st.markdown("---")

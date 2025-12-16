@@ -27,6 +27,12 @@ def get_style_examples():
 
 def generate_post(topic, tone="Profissional"):
     """Generate a post using OpenAI GPT-4o"""
+    from src.validation import validate_topic
+    
+    try:
+        topic = validate_topic(topic)
+    except ValueError as e:
+        return f"Erro: {str(e)}"
     
     api_key = configure_openai()
     if not api_key:
@@ -69,12 +75,11 @@ def generate_post(topic, tone="Profissional"):
                 ],
                 temperature=0.7
             )
+            generated_text = response.choices[0].message.content
             # Strip any HTML tags and comments from the response
-            content = response.choices[0].message.content
-            # Remove HTML comments first
-            clean_content = re.sub(r'<!--.*?-->', '', content, flags=re.DOTALL)
-            # Remove HTML/XML tags
-            clean_content = re.sub(r'<[^>]+>', '', clean_content)
+            # Clean HTML using bleach (safe sanitization)
+            import bleach
+            clean_content = bleach.clean(generated_text, tags=[], strip=True)
             # Clean up extra whitespace
             clean_content = re.sub(r'\n\s*\n', '\n\n', clean_content).strip()
             return clean_content

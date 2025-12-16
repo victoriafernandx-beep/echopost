@@ -355,3 +355,109 @@ def predict_engagement(content: str, topic: str) -> Dict[str, any]:
         'factors': factors,
         'recommendations': recommendations
     }
+
+
+def analyze_style_dna(content: str) -> Dict[str, any]:
+    """
+    Analyze the style/DNA of a post to create a reusable profile
+    """
+    client = configure_openai()
+    if not client:
+        return {}
+        
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Você é um especialista em análise linguística de conteúdo viral."
+                },
+                {
+                    "role": "user",
+                    "content": f"""Analise o estilo de escrita deste post e extraia seu "DNA":
+
+"{content}"
+
+Retorne um JSON com:
+{{
+    "tone": "tom principal (ex: Autoridade, Vulnerável, Humor)",
+    "structure": "estrutura (ex: Lista, História, Frase Curta)",
+    "keywords": ["três", "palavras", "chave"],
+    "emoji_usage": "descrição do uso de emojis"
+}}"""
+                }
+            ]
+        )
+        
+        # Clean and parse JSON
+        result_text = response.choices[0].message.content.strip()
+        result_text = re.sub(r'```json\s*|\s*```', '', result_text).strip()
+        
+        import json
+        return json.loads(result_text)
+        
+    except Exception as e:
+        print(f"Error analyzing style: {e}")
+        return {
+            "tone": "Profissional",
+            "structure": "Padrão",
+            "keywords": [],
+            "emoji_usage": "Moderado"
+        }
+
+
+def extract_insights_from_transcript(transcript_text: str) -> List[Dict[str, str]]:
+    """
+    Analyze a meeting transcript and extract potential LinkedIn post ideas
+    """
+    client = configure_openai()
+    if not client:
+        return []
+
+    # Limit transcript length to avoid context limits (approx 15k chars)
+    truncated_text = transcript_text[:15000]
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Você é um estrategista de conteúdo para LinkedIn. Sua missão é ler transcrições de reuniões e identificar insights valiosos que podem virar posts."
+                },
+                {
+                    "role": "user",
+                    "content": f"""Analise a seguinte transcrição de reunião e extraia 3 a 5 ideias de posts para o LinkedIn.
+                    
+                    Foque em:
+                    1. Insights de negócios ou liderança
+                    2. Soluções técnicas interessantes discutidas
+                    3. Aprendizados ou 'Aha moments'
+                    4. Decisões estratégicas (sem revelar segredos industriais)
+
+                    Transcrição:
+                    "{truncated_text}..."
+
+                    Retorne APENAS um JSON válido (lista de objetos) com este formato:
+                    [
+                        {{
+                            "topic": "Título curto do tópico",
+                            "summary": "Resumo do que foi discutido sobre isso e por que é relevante",
+                            "angle": "Ângulo sugerido (ex: Educativo, Provocativo, Bastidores)"
+                        }}
+                    ]"""
+                }
+            ],
+            temperature=0.7
+        )
+        
+        result_text = response.choices[0].message.content.strip()
+        result_text = re.sub(r'```json\s*|\s*```', '', result_text).strip()
+        
+        import json
+        return json.loads(result_text)
+        
+    except Exception as e:
+        print(f"Error extracting insights: {e}")
+        return []
