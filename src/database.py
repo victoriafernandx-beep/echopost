@@ -131,17 +131,28 @@ def get_user_id_by_phone(phone_number):
 def get_post_metrics(user_id=None):
     """
     Get metrics about posts (Total, by Source (WhatsApp/Web), etc).
+    Also finds 'orphaned' WhatsApp posts that match the user's verified phone number.
     """
     supabase = get_supabase_client()
     try:
-        # Base query
+        # 1. Base Query
         query = supabase.table("posts").select("*", count="exact")
         
+        # 2. Smart Filter: ID or Phone Tag
         if user_id:
-            query = query.eq("user_id", user_id)
+            # Try to get phone number to recover broken links
+            phone = get_user_setting(user_id, "whatsapp_number")
             
-        # Execute to get total count and data for local processing
-        # Note: For large datasets, use specific count queries. For now, fetching all is fine.
+            if phone:
+                # Syntax: user_id.eq.XYZ,tags.cs.{phone_123}
+                # using .or_() method from postgrest
+                tag_str = f"phone_{phone}"
+                filter_str = f"user_id.eq.{user_id},tags.cs.{{{tag_str}}}"
+                query = query.or_(filter_str)
+            else:
+                query = query.eq("user_id", user_id)
+            
+        # Execute
         response = query.execute()
         posts = response.data
         

@@ -79,16 +79,51 @@ def verify_webhook(request):
         print("❌ Falha na verificação do webhook")
         return 'Forbidden', 403
 
-def process_whatsapp_message(data):
-    """Processar mensagem recebida do WhatsApp"""
-    
+# --- MEMORY FUNCTIONS ---
+def save_chat_history(phone, role, content):
+    """Salva mensagens no histórico para manter contexto"""
     try:
-        # Extrair dados da mensagem
-        entry = data['entry'][0]
-        changes = entry['changes'][0]
-        value = changes['value']
+        if supabase:
+            supabase.table("chat_history").insert({
+                "phone_number": phone,
+                "role": role,
+                "content": content
+            }).execute()
+    except Exception as e:
+        print(f"⚠️ Erro ao salvar histórico: {e}")
+
+def get_chat_context(phone, limit=6):
+    """Recupera as últimas N mensagens para dar contexto ao AI"""
+    try:
+        if not supabase: return []
         
-        # Verificar se há mensagens
+        response = supabase.table("chat_history")\
+            .select("role, content")\
+            .eq("phone_number", phone)\
+            .order("created_at", desc=True)\
+            .limit(limit)\
+            .execute()
+        
+        # O banco retorna do mais recente pro mais antigo, precisamos inverter para o AI
+        history = response.data[::-1] if response.data else []
+        
+        # Formata para o OpenAI
+        formatted_history = []
+        for msg in history:
+            formatted_history.append({"role": msg["role"], "content": msg["content"]})
+            
+        return formatted_history
+    except Exception as e:
+        print(f"⚠️ Erro ao buscar contexto: {e}")
+        return []
+
+def process_whatsapp_message(data):
+    """Processar mensagem recebida do WhatsApp com Memória"""
+    try:
+        entry = data.get('entry', [])[0]
+        changes = entry.get('changes', [])[0]
+        value = changes.get('value', {})
+        
         if 'messages' not in value:
             print("⚠️ Sem mensagens para processar")
             return
@@ -98,61 +133,49 @@ def process_whatsapp_message(data):
         message_type = message['type']
         
         print(f"📱 Mensagem de: {from_number}")
-        print(f"📝 Tipo: {message_type}")
         
-        # Check rate limit
+        # Rate Limit Check
         allowed, remaining = rate_limiter.is_allowed(from_number)
         if not allowed:
-            wait_time = rate_limiter.get_wait_time(from_number)
-            send_whatsapp_message(
-                from_number,
-                f"⏸️ Você atingiu o limite de mensagens.\\n\\nAguarde {wait_time} segundos antes de enviar outra mensagem."
-            )
+            send_whatsapp_message(from_number, "⏸️ Calma aí! Muitas mensagens seguidas.")
             return
-        
-        # Processar baseado no tipo
-        if message_type == 'text':
-            text = message['text']['body']
-            print(f"💬 Texto: {text}")
 
-            try:
-                text = validate_message(text)
-            except ValueError as e:
-                send_whatsapp_message(from_number, f"⛔ {str(e)}")
-                return
-            
-            # Check for commands
-            if text.startswith('/'):
-                response = handle_command(text)
-                send_whatsapp_message(from_number, response)
-                return
-            
-            response = generate_post_from_text(text, from_number)
-            send_whatsapp_message(from_number, response)
-        
+        # 1. Obter Texto do Usuário
+        user_message = ""
+        if message_type == 'text':
+            user_message = message['text']['body']
         elif message_type == 'audio':
             audio_id = message['audio']['id']
-            print(f"🎤 Áudio ID: {audio_id}")
-            
-            # Baixar e transcrever áudio
+            print(f"🎧 Processando Áudio ID: {audio_id}")
             audio_url = get_media_url(audio_id)
-            transcription = transcribe_audio(audio_url)
-            print(f"📝 Transcrição: {transcription}")
+            user_message = transcribe_audio(audio_url)
+            if not user_message:
+                send_whatsapp_message(from_number, "❌ Não consegui entender o áudio.")
+                return
+            send_whatsapp_message(from_number, f"🎙️ *Entendi:* {user_message}")
+
+        if not user_message:
+            send_whatsapp_message(from_number, "⚠️ Mande texto ou áudio, por favor.")
+            return
+
+        # 2. Comandos de Sistema
+        if user_message.strip().lower() in ['/reset', 'reset']:
+            # TODO: Implementar limpeza real
+            send_whatsapp_message(from_number, "🧹 Memória (simulada) limpa! Novo papo.") 
+            return
             
-            # Gerar post
-            response = generate_post_from_text(transcription, from_number)
+        if user_message.startswith('/'):
+            response = handle_command(user_message)
             send_whatsapp_message(from_number, response)
-        
-        else:
-            # Tipo não suportado
-            send_whatsapp_message(
-                from_number, 
-                "⚠️ Desculpe, só consigo processar mensagens de texto ou áudio no momento."
-            )
+            return
+
+        # 3. Geração Conversacional
+        response = generate_conversation_response(user_message, from_number)
+        send_whatsapp_message(from_number, response)
     
     except Exception as e:
-        print(f"❌ Erro ao processar mensagem: {e}")
-        raise
+        print(f"❌ Erro main process: {e}")
+        send_whatsapp_message(from_number, "❌ Erro interno.")
 
 def handle_command(command_text):
     """Handle bot commands"""
@@ -226,53 +249,56 @@ Exemplo: "Dica sobre produtividade: use a técnica Pomodoro"
 
 Digite /help para ver os comandos disponíveis."""
 
-def generate_post_from_text(text, from_number):
-    """Gerar post profissional usando OpenAI"""
-    
+def generate_conversation_response(user_text, from_number):
+    """Função auxiliar para orquestrar a geração da resposta Conversacional"""
     try:
+        # A. Recuperar histórico (Limitado a 10 turnos para não estourar tokens contextuais)
+        history = get_chat_context(from_number, limit=10)
+        
+        # B. Salvar o input do usuário agora no histórico
+        save_chat_history(from_number, "user", user_text)
+        
+        # C. Montar Prompt do Sistema (Persona)
+        system = {
+            "role": "system",
+            "content": (
+                "Você é o EchoPost, estrategista pessoal de LinkedIn. "
+                "Ajude o usuário a criar conteúdo. Se ele der um tema solto, explore. "
+                "Se pedir o post, entregue formatado. Seja consultivo e sênior. "
+                "Lembre-se do contexto anterior. "
+                "Se o usuário agradecer ou cumprimentar, seja breve e simpático."
+            )
+        }
+        
+        messages = [system] + history + [{"role": "user", "content": user_text}]
+        
+        print(f"🧠 Contexto enviado: {len(messages)} mensagens")
+        
+        # D. Chamar OpenAI
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": """Você é um estrategista de conteúdo B2B sênior.
-Seu objetivo é transformar insights em posts de altíssimo valor e clareza.
-
-PRINCÍPIOS DE ESTILO:
-1. Sênior e Direto: Vá direto ao ponto. Sem enrolação.
-2. Ritmo Visual: Escreva frases curtas. Pule linhas para dar respiro. Evite "muros de texto".
-3. Variedade: Não use sempre a mesma fórmula. Adapte a estrutura (lista, contraste, pergunta) ao conteúdo.
-4. Emojis inteligentes: Use como marcadores de tópico ou destaque, não como enfeite.
-5. Sem clichês: Evite linguagem de "guru" ou frases motivacionais vazias.
-
-Seja autêntico e provocativo."""},
-                {"role": "user", "content": f"""Transforme o seguinte insight/áudio em um post profissional seguindo os princípios acima:
-
-"{text}"
-
-Retorne APENAS o texto do post."""}
-            ],
-            temperature=0.7,
-            max_tokens=500
+            messages=messages,
+            max_tokens=600,
+            temperature=0.7
         )
         
-        post = response.choices[0].message.content.strip()
+        bot_reply = response.choices[0].message.content
         
-        # Salvar no Supabase
-        save_post_to_db(post, from_number)
+        # E. Salvar resposta no histórico
+        save_chat_history(from_number, "assistant", bot_reply)
         
-        # Adicionar cabeçalho
-        final_message = f"""✨ *Post gerado com IA!*
-
-{post}
-
----
-📝 Criado pelo EchoPost Bot
-💡 Edite como preferir antes de publicar!"""
+        # F. Salvar no Banco de Posts (Para aparecer na Dashboard)
+        # Filtro: Só salva se não for mensagem muito curta (Oi, obrigado, etc.)
+        ignored_phrases = ['ola', 'oi', 'obrigado', 'de nada', 'tchau', 'test', 'teste']
+        if len(bot_reply) > 40 and bot_reply.lower() not in ignored_phrases:
+             # Tenta salvar apenas se parece conteúdo gerado
+             save_post_to_db(bot_reply, from_number)
         
-        return final_message
+        return bot_reply
 
     except Exception as e:
-        print(f"❌ Erro ao gerar post: {e}")
-        return f"❌ Desculpe, houve um erro ao gerar o post: {str(e)}"
+        print(f"❌ Erro AI conversation: {e}")
+        return "Estou confuso agora. Tente novamente?"
 
 def save_post_to_db(content, from_number):
     """Salvar post no Supabase"""
