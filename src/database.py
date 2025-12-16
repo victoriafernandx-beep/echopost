@@ -109,6 +109,56 @@ def delete_post(post_id, user_id):
         st.error(f"Error deleting post: {e}")
         return None
 
+def get_user_id_by_phone(phone_number):
+    """
+    Get user_id associated with a phone number from user_settings.
+    """
+    supabase = get_supabase_client()
+    try:
+        response = supabase.table("user_settings")\
+            .select("user_id")\
+            .eq("setting_key", "whatsapp_number")\
+            .eq("setting_value", phone_number)\
+            .execute()
+        
+        if response.data and len(response.data) > 0:
+            return response.data[0]['user_id']
+        return None
+    except Exception as e:
+        print(f"Error finding user by phone: {e}")
+        return None
+
+def get_post_metrics(user_id=None):
+    """
+    Get metrics about posts (Total, by Source (WhatsApp/Web), etc).
+    """
+    supabase = get_supabase_client()
+    try:
+        # Base query
+        query = supabase.table("posts").select("*", count="exact")
+        
+        if user_id:
+            query = query.eq("user_id", user_id)
+            
+        # Execute to get total count and data for local processing
+        # Note: For large datasets, use specific count queries. For now, fetching all is fine.
+        response = query.execute()
+        posts = response.data
+        
+        total_posts = len(posts)
+        whatsapp_posts = sum(1 for p in posts if p.get('source') == 'whatsapp' or 'whatsapp' in p.get('tags', []))
+        web_posts = total_posts - whatsapp_posts
+        
+        return {
+            "total": total_posts,
+            "whatsapp": whatsapp_posts,
+            "web": web_posts,
+            "posts_data": posts # Return recent posts for charts
+        }
+    except Exception as e:
+        print(f"Error fetching metrics: {e}")
+        return {"total": 0, "whatsapp": 0, "web": 0, "posts_data": []}
+
 def update_post_tags(post_id, tags, user_id):
     """Update tags for a post"""
     supabase = get_supabase_client()

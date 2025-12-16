@@ -281,15 +281,31 @@ def save_post_to_db(content, from_number):
         return
 
     try:
-        # Tentar encontrar usuário pelo telefone ou usar um ID padrão
-        # Por enquanto vamos usar um ID fixo para o bot ou tentar inferir
-        user_id = os.getenv("WHATSAPP_BOT_USER_ID", "whatsapp-bot")
+        # Tentar encontrar usuário pelo telefone (lookup na tabela user_settings)
+        user_id = os.getenv("WHATSAPP_BOT_USER_ID", "whatsapp-bot") # Fallback
+        
+        try:
+            # Busca quem salvou esse número nas configurações
+            response = supabase.table("user_settings")\
+                .select("user_id")\
+                .eq("setting_key", "whatsapp_number")\
+                .eq("setting_value", from_number)\
+                .execute()
+            
+            if response.data and len(response.data) > 0:
+                user_id = response.data[0]['user_id']
+                print(f"✅ Usuário identificado: {user_id}")
+            else:
+                print(f"⚠️ Usuário não identificado para {from_number}. Usando genérico.")
+                
+        except Exception as lookup_error:
+            print(f"⚠️ Erro no lookup de usuário: {lookup_error}")
 
         data = {
             "content": content,
             "user_id": user_id,
             "topic": "WhatsApp Generated",
-            "source": "whatsapp",  # Campo novo se precisarmos ou usar tags
+            "source": "whatsapp",
             "tags": ["whatsapp", f"phone_{from_number}"],
             "created_at": "now()"
         }
