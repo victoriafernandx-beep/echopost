@@ -402,6 +402,10 @@ def send_whatsapp_message(to_number, message):
     
     try:
         response = requests.post(url, headers=headers, json=data)
+        
+        if not response.ok:
+            print(f"❌ Erro Detalhado Meta: {response.text}")
+            
         response.raise_for_status()
         print(f"✅ Mensagem enviada para {to_number}")
         return True
