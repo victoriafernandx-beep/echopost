@@ -497,77 +497,104 @@ if page == "🏠 Home":
 elif page == "📊 Dashboard":
     st.markdown("### 📊 Dashboard Geral")
     
-    from src import analytics
-    # Get metrics
-    metrics = analytics.get_metrics(30)
+    tab_overview, tab_bot = st.tabs(["📊 Visão Geral", "🤖 Métricas do Bot"])
     
-    # 1. Top Metrics Row
-    st.markdown("#### Visão Geral (30 dias)")
-    m_col1, m_col2, m_col3 = st.columns(3)
-    with m_col1:
-        st.metric("Total de Posts", metrics['total_posts'])
-    with m_col2:
-        st.metric("Sequência", f"{metrics['streak']} dias")
-    with m_col3:
-        st.metric("Média Palavras", metrics['avg_words'])
-    
-    st.markdown("---")
-    
-    # 2. Activity Chart (Moved from Library)
-    st.markdown("#### 📈 Atividade de Postagem")
-    dates, counts = analytics.get_posting_activity()
-    
-    import plotly.graph_objects as go
-    fig = go.Figure()
-    fig.add_trace(go.Bar(
-        x=dates,
-        y=counts,
-        marker_color=current_theme['purple_neon'],
-        opacity=0.8
-    ))
-    
-    fig.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(255,255,255,0.9)',
-        margin=dict(l=20, r=20, t=20, b=20),
-        height=350,
-        xaxis=dict(
-            showgrid=False,
-            showline=True,
-            linecolor=current_theme['border_gray']
-        ),
-        yaxis=dict(
-            showgrid=True,
-            gridcolor=current_theme['soft_gray'],
-            showline=False,
-            title="Posts"
-        ),
-        hovermode='x unified'
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
-    
-    # 3. Insights (Moved from Library)
-    st.markdown("---")
-    st.markdown("#### 💡 Insights Automáticos")
-    insights = analytics.get_insights(metrics)
-    
-    cols_insights = st.columns(len(insights) if insights else 1)
-    if insights:
-        for idx, insight in enumerate(insights):
-            with cols_insights[idx]:
-                border_color = current_theme['success'] if insight['type'] == "positive" else current_theme['warning'] if insight['type'] == "tip" else current_theme['cyan_blue']
-                st.markdown(f'''
-                <div class="post-card" style="border-left: 4px solid {border_color}; padding: 1.25rem; height: 100%;">
-                    <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
-                        <span style="font-size: 1.25rem; margin-right: 0.5rem;">{insight['icon']}</span>
-                        <span style="font-weight: 600; color: {current_theme['deep_black']};">{insight['title']}</span>
+    with tab_overview:
+        from src import analytics
+        # Get metrics
+        metrics = analytics.get_metrics(30)
+        
+        # 1. Top Metrics Row
+        st.markdown("#### Visão Geral (30 dias)")
+        m_col1, m_col2, m_col3 = st.columns(3)
+        with m_col1:
+            st.metric("Total de Posts", metrics['total_posts'])
+        with m_col2:
+            st.metric("Sequência", f"{metrics['streak']} dias")
+        with m_col3:
+            st.metric("Média Palavras", metrics['avg_words'])
+        
+        st.markdown("---")
+        
+        # 2. Activity Chart (Moved from Library)
+        st.markdown("#### 📈 Atividade de Postagem")
+        dates, counts = analytics.get_posting_activity()
+        
+        import plotly.graph_objects as go
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            x=dates,
+            y=counts,
+            marker_color=current_theme['purple_neon'],
+            opacity=0.8
+        ))
+        
+        fig.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(255,255,255,0.9)',
+            margin=dict(l=20, r=20, t=20, b=20),
+            height=350,
+            xaxis=dict(
+                showgrid=False,
+                showline=True,
+                linecolor=current_theme['border_gray']
+            ),
+            yaxis=dict(
+                showgrid=True,
+                gridcolor=current_theme['soft_gray'],
+                showline=False,
+                title="Posts"
+            ),
+            hovermode='x unified'
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # 3. Insights (Moved from Library)
+        st.markdown("---")
+        st.markdown("#### 💡 Insights Automáticos")
+        insights = analytics.get_insights(metrics)
+        
+        cols_insights = st.columns(len(insights) if insights else 1)
+        if insights:
+            for idx, insight in enumerate(insights):
+                with cols_insights[idx]:
+                    border_color = current_theme['success'] if insight['type'] == "positive" else current_theme['warning'] if insight['type'] == "tip" else current_theme['cyan_blue']
+                    st.markdown(f'''
+                    <div class="post-card" style="border-left: 4px solid {border_color}; padding: 1.25rem; height: 100%;">
+                        <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
+                            <span style="font-size: 1.25rem; margin-right: 0.5rem;">{insight['icon']}</span>
+                            <span style="font-weight: 600; color: {current_theme['deep_black']};">{insight['title']}</span>
+                        </div>
+                        <div style="font-size: 0.9rem; color: {current_theme['graphite']}; line-height: 1.5;">{insight['description']}</div>
                     </div>
-                    <div style="font-size: 0.9rem; color: {current_theme['graphite']}; line-height: 1.5;">{insight['description']}</div>
-                </div>
-                ''', unsafe_allow_html=True)
-    else:
-        st.info("Ainda não temos insights suficientes. Continue postando!")
+                    ''', unsafe_allow_html=True)
+        else:
+            st.info("Ainda não temos insights suficientes. Continue postando!")
+
+    with tab_bot:
+        st.markdown("### 🤖 Performance do Agente WhatsApp")
+        
+        # Fetch metrics
+        metrics = database.get_post_metrics(user.id if user else None)
+        
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Total de Posts", metrics['total'])
+        c2.metric("Via JavaScript/Web", metrics['web'])
+        c3.metric("Via WhatsApp", metrics['whatsapp'], delta="🔥 Hot Source")
+        
+        st.markdown("---")
+        st.subheader("📝 Últimos Posts do Bot")
+        
+        bot_posts = [p for p in metrics['posts_data'] if p.get('source') == 'whatsapp' or 'whatsapp' in p.get('tags', [])]
+        
+        if bot_posts:
+            for post in bot_posts[:5]:
+                with st.expander(f"{post.get('created_at', '')[:10]} - {post.get('content', '')[:50]}..."):
+                    st.write(post.get('content'))
+                    st.caption(f"Tags: {post.get('tags')}")
+        else:
+            st.info("Nenhum post gerado pelo WhatsApp ainda.")
 
 elif page == "📚 Biblioteca":
     st.markdown("### 📚 Sua Biblioteca de Conteúdo")
@@ -1731,6 +1758,38 @@ elif page == "⚙️ Configurações":
         else:
             st.error("⚠️ Credenciais não configuradas. Verifique seus secrets.")
             
+    st.markdown("---")
+
+    # WhatsApp Integration Section
+    st.markdown("### 💬 Integração WhatsApp Bot")
+    
+    st.markdown(f"""
+    <div class="post-card">
+    <div style="display: flex; align-items: start;">
+    <span style="font-size: 1.5rem; margin-right: 1rem;">📱</span>
+    <div style="width: 100%;">
+    <h4 style="margin: 0; color: {current_theme['deep_black']};">Conectar seu Número</h4>
+    <p style="font-size: 0.9rem; color: {current_theme['graphite']}; margin-top: 0.5rem; margin-bottom: 1rem;">
+        Para que o Bot saiba que é você falando, salve seu número abaixo (com DDD).
+    </p>
+    """, unsafe_allow_html=True)
+
+    current_phone = database.get_user_setting(user.id if user else "dev", "whatsapp_number")
+    c_wa1, c_wa2 = st.columns([2, 1])
+    with c_wa1:
+        new_phone = st.text_input("Seu Número WhatsApp", value=current_phone if current_phone else "", placeholder="5511999999999", label_visibility="collapsed")
+    with c_wa2:
+        if st.button("💾 Salvar Número", use_container_width=True):
+            if new_phone:
+                clean_phone = "".join(filter(str.isdigit, new_phone))
+                database.save_user_setting(user.id if user else "dev", "whatsapp_number", clean_phone)
+                st.success("Salvo!")
+                st.rerun()
+            else:
+                st.warning("Digite um número.")
+    
+    st.markdown("</div></div></div>", unsafe_allow_html=True)
+
     st.markdown("---")
     
     # API Keys Section
