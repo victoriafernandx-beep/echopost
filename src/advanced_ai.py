@@ -11,7 +11,8 @@ from typing import List, Dict, Tuple
 def configure_openai():
     """Configure OpenAI client"""
     try:
-        api_key = st.secrets["OPENAI_API_KEY"]
+        import os
+        api_key = st.secrets.get("OPENAI_API_KEY") if "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
         if not api_key:
             return None
         return openai.OpenAI(api_key=api_key)

@@ -11,13 +11,20 @@ LINKEDIN_AUTH_URL = "https://www.linkedin.com/oauth/v2/authorization"
 LINKEDIN_TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
 LINKEDIN_API_BASE = "https://api.linkedin.com/v2"
 
+import os
+
 def get_linkedin_credentials():
-    """Get LinkedIn credentials from secrets"""
+    """Get LinkedIn credentials from secrets or env"""
     try:
+        # Try finding in secrets, otherwise env
+        client_id = st.secrets.get("LINKEDIN_CLIENT_ID", "") if "LINKEDIN_CLIENT_ID" in st.secrets else os.getenv("LINKEDIN_CLIENT_ID", "")
+        client_secret = st.secrets.get("LINKEDIN_CLIENT_SECRET", "") if "LINKEDIN_CLIENT_SECRET" in st.secrets else os.getenv("LINKEDIN_CLIENT_SECRET", "")
+        redirect_uri = st.secrets.get("LINKEDIN_REDIRECT_URI", "https://seu-app.streamlit.app")
+        
         return {
-            "client_id": st.secrets.get("LINKEDIN_CLIENT_ID", ""),
-            "client_secret": st.secrets.get("LINKEDIN_CLIENT_SECRET", ""),
-            "redirect_uri": st.secrets.get("LINKEDIN_REDIRECT_URI", "https://seu-app.streamlit.app")
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "redirect_uri": redirect_uri
         }
     except Exception as e:
         print(f"Error loading LinkedIn credentials: {e}")
