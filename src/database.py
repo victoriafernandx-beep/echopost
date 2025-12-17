@@ -4,11 +4,17 @@ Database operations for EchoPost
 import streamlit as st
 from supabase import create_client
 
+import os
+
 # supabase = create_client(url, key)
 # Removed cache_resource to ensure we can have unique authenticated clients per user/request
 def init_supabase():
-    url = st.secrets["SUPABASE_URL"]
-    key = st.secrets["SUPABASE_KEY"]
+    url = st.secrets.get("SUPABASE_URL") if "SUPABASE_URL" in st.secrets else os.getenv("SUPABASE_URL")
+    key = st.secrets.get("SUPABASE_KEY") if "SUPABASE_KEY" in st.secrets else os.getenv("SUPABASE_KEY")
+    
+    if not url or not key:
+        return None
+        
     return create_client(url, key)
 
 def get_supabase_client(use_service_role=False):
@@ -17,12 +23,27 @@ def get_supabase_client(use_service_role=False):
     Args:
         use_service_role: If True, attempts to use SUPABASE_SERVICE_KEY for admin access
     """
-    url = st.secrets["SUPABASE_URL"]
+    # 1. Try st.secrets (Local/Streamlit Cloud)
+    if "SUPABASE_URL" in st.secrets:
+        url = st.secrets["SUPABASE_URL"]
+        if use_service_role:
+            key = st.secrets.get("SUPABASE_SERVICE_KEY", st.secrets["SUPABASE_KEY"])
+        else:
+            key = st.secrets["SUPABASE_KEY"]
     
-    # Try to get service key if requested or if we are in background
-    if use_service_role:
-        key = st.secrets.get("SUPABASE_SERVICE_KEY", st.secrets["SUPABASE_KEY"])
-        return create_client(url, key)
+    # 2. Linux/Render Env Vars
+    else:
+        url = os.getenv("SUPABASE_URL")
+        if use_service_role:
+            key = os.getenv("SUPABASE_SERVICE_KEY", os.getenv("SUPABASE_KEY"))
+        else:
+            key = os.getenv("SUPABASE_KEY")
+            
+    if not url or not key:
+        print("❌ Supabase config not found in Secrets or Env")
+        return None
+
+    return create_client(url, key)
 
     # Standard client (Anon)
     key = st.secrets["SUPABASE_KEY"]
