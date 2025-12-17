@@ -15,17 +15,21 @@ def get_api_key():
 
     # 2. Try Streamlit Secrets (Root)
     try:
-        # Accessing st.secrets might raise error if no secrets.toml exists
+        # Accessing st.secrets might raise FileNotFoundError if no secrets.toml exists
         if "OPENAI_API_KEY" in st.secrets:
             return st.secrets["OPENAI_API_KEY"]
-    except:
+    except FileNotFoundError:
+        pass
+    except Exception:
         pass
         
     # 3. Try Streamlit Secrets (Nested)
     try:
         if "secrets" in st.secrets and "OPENAI_API_KEY" in st.secrets["secrets"]:
             return st.secrets["secrets"]["OPENAI_API_KEY"]
-    except:
+    except FileNotFoundError:
+        pass
+    except Exception:
         pass
         
     return None

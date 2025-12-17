@@ -3,11 +3,21 @@ import streamlit as st
 import datetime
 
 def get_news_api_key():
-    """Get NewsAPI key from secrets"""
+    """Get NewsAPI key from env or secrets"""
+    import os
+    # 1. Try env first
+    api_key = os.getenv("NEWS_API_KEY")
+    if api_key:
+        return api_key
+    
+    # 2. Try secrets with protection
     try:
-        return st.secrets.get("NEWS_API_KEY", "")
-    except:
-        return ""
+        if "NEWS_API_KEY" in st.secrets:
+            return st.secrets["NEWS_API_KEY"]
+    except FileNotFoundError:
+        pass
+    
+    return ""
 
 def fetch_news(topic, language='pt', sort_by='relevancy'):
     """

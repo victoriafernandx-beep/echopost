@@ -114,7 +114,7 @@ def get_posts(user_id, limit=None):
     try:
         # Query specific user OR whatsapp bot posts
         # Fix: Use .in_() for safe parameterization instead of vulnerable .or() string interpolation
-        bot_id = st.secrets.get("WHATSAPP_BOT_USER_ID", "whatsapp-bot")
+        bot_id = get_config("WHATSAPP_BOT_USER_ID") or "whatsapp-bot"
         query = supabase.table("posts").select("*").in_("user_id", [user_id, bot_id]).order("created_at", desc=True)
         if limit:
             query = query.limit(limit)
@@ -239,7 +239,7 @@ def search_posts(user_id, query=None, tags=None, favorites_only=False):
     supabase = get_supabase_client()
     try:
         # Fix: Use .in_() for safe parameterization
-        bot_id = st.secrets.get("WHATSAPP_BOT_USER_ID", "whatsapp-bot")
+        bot_id = get_config("WHATSAPP_BOT_USER_ID") or "whatsapp-bot"
         db_query = supabase.table("posts").select("*").in_("user_id", [user_id, bot_id])
         
         # Filter by favorites
