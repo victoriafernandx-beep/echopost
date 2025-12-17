@@ -1685,16 +1685,38 @@ elif page == "📡 News Radar":
                         
                 with col_txt:
                     st.markdown(f"""
-                    \u003ch4 style="margin: 0; color: {current_theme['deep_black']};"\u003e{article['title']}\u003c/h4\u003e
-                    \u003cp style="font-size: 0.8rem; color: #6B7280; margin: 0.2rem 0;"\u003e
+                    <h4 style="margin: 0; color: {current_theme['deep_black']};">{article['title']}</h4>
+                    <p style="font-size: 0.8rem; color: #6B7280; margin: 0.2rem 0;">
                         {article['source']['name']} • {article.get('publishedAt', article.get('published_date', 'N/A'))[:10]}
-                    \u003c/p\u003e
-                    \u003cp style="font-size: 0.9rem; color: {current_theme['graphite']}; line-height: 1.4;"\u003e
+                    </p>
+                    <p style="font-size: 0.9rem; color: {current_theme['graphite']}; line-height: 1.4;">
                         {article.get('description', '')[:150]}...
-                    \u003c/p\u003e
+                    </p>
                     """, unsafe_allow_html=True)
                     
-                    st.link_button("📖 Ler Artigo", article['url'], use_container_width=True)
+                    # Action buttons
+                    btn_col1, btn_col2 = st.columns(2)
+                    with btn_col1:
+                        st.link_button("📖 Ler Artigo", article['url'], use_container_width=True)
+                    with btn_col2:
+                        if st.button("✨ Gerar Post", key=f"gen_{article.get('url', '')[:30]}", use_container_width=True):
+                            # Prepare news context for AI
+                            news_context = f"""
+                            TÍTULO: {article['title']}
+                            FONTE: {article['source']['name']}
+                            RESUMO: {article.get('description', '')}
+                            """
+                            
+                            with st.spinner("🤖 Gerando post sobre esta notícia..."):
+                                from src import generator
+                                prompt = f"Crie um post profissional para LinkedIn sobre esta notícia:\n{news_context}"
+                                content = generator.generate_post(prompt, tone="Profissional")
+                                
+                                # Save to session and navigate to generator
+                                st.session_state['generated_content'] = content
+                                st.session_state['last_topic'] = article['title']
+                                st.session_state["navigation_selection"] = "✨ Gerador de Posts"
+                                st.rerun()
                 
                 st.markdown("---")
     
