@@ -350,8 +350,11 @@ with st.sidebar:
     
     # WhatsApp Bot Link
     wa_number = "15550396528" # Bot Number (US Test Number)
+    # Safe lookup: Check secrets first, then env, then default
     if "WHATSAPP_NUMBER" in st.secrets:
         wa_number = st.secrets["WHATSAPP_NUMBER"]
+    elif os.getenv("WHATSAPP_NUMBER"):
+        wa_number = os.getenv("WHATSAPP_NUMBER")
     
     # Sanitize number (remove spaces, +, -, (, )) to ensure wa.me works
     import re
