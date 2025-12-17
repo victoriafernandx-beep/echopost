@@ -1610,27 +1610,53 @@ elif page == "📡 News Radar":
     </div>
     """, unsafe_allow_html=True)
     
-                format_func=lambda x: x[0],
-                label_visibility="collapsed",
-                key="news_lang"
-            )
-            
-        with col_btn:
-            if st.button("Buscar", use_container_width=True, type="primary"):
-                if search_topic:
-                    with st.spinner("🔍 Buscando em múltiplas fontes (RSS, Google News)..."):
-                        from src.news_aggregator import NewsAggregator
-                        articles = NewsAggregator.fetch_from_all_sources(
-                            topic=search_topic, 
-                            max_articles=20,
-                            language=language[1]
-                        )
-                        st.session_state['news_articles'] = articles
-                        st.session_state['news_topic'] = search_topic
-                else:
-                    st.warning("Digite um tópico.")
+    # Search Container
+    st.markdown(f"""
+    <div style="
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        border: 1px solid {current_theme['border_gray']};
+        margin-bottom: 2rem;
+    ">
+    """, unsafe_allow_html=True)
+    
+    col_search, col_lang, col_btn = st.columns([3, 1, 1])
+    
+    with col_search:
+        search_topic = st.text_input(
+            "🔎 Tópico",
+            placeholder="Ex.: Inteligência Artificial, Startups...",
+            label_visibility="collapsed",
+            key="news_search"
+        )
+    
+    with col_lang:
+        language = st.selectbox(
+            "Idioma",
+            options=[("Português", "pt"), ("Inglês", "en"), ("Espanhol", "es")],
+            format_func=lambda x: x[0],
+            label_visibility="collapsed",
+            key="news_lang"
+        )
         
-        st.markdown("</div>", unsafe_allow_html=True)
+    with col_btn:
+        if st.button("Buscar", use_container_width=True, type="primary"):
+            if search_topic:
+                with st.spinner("🔍 Buscando em múltiplas fontes (RSS, Google News)..."):
+                    from src.news_aggregator import NewsAggregator
+                    articles = NewsAggregator.fetch_from_all_sources(
+                        topic=search_topic, 
+                        max_articles=20,
+                        language=language[1]
+                    )
+                    st.session_state['news_articles'] = articles
+                    st.session_state['news_topic'] = search_topic
+            else:
+                st.warning("Digite um tópico.")
+    
+    st.markdown("</div>", unsafe_allow_html=True)
         
         # Display results
         if 'news_articles' in st.session_state and st.session_state['news_articles']:
