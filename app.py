@@ -1664,7 +1664,7 @@ elif page == "📡 News Radar":
         st.markdown(f"### Destaques para '{st.session_state['news_topic']}'")
         
         # Display articles in a nicer grid
-        for article in articles:
+        for idx, article in enumerate(articles):
             # Article Card
             with st.container():
                 col_img, col_txt = st.columns([1, 3])
@@ -1699,7 +1699,7 @@ elif page == "📡 News Radar":
                     with btn_col1:
                         st.link_button("📖 Ler Artigo", article['url'], use_container_width=True)
                     with btn_col2:
-                        if st.button("✨ Gerar Post", key=f"gen_{article.get('url', '')[:30]}", use_container_width=True):
+                        if st.button("✨ Gerar Post", key=f"gen_news_{idx}", use_container_width=True):
                             # Prepare news context for AI
                             news_context = f"""
                             TÍTULO: {article['title']}
