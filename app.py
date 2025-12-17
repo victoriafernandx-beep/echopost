@@ -1651,8 +1651,13 @@ elif page == "📡 News Radar":
         with col_btn:
             if st.button("Buscar", use_container_width=True, type="primary"):
                 if search_topic:
-                    with st.spinner("Reading the web..."):
-                        articles = news.fetch_news(search_topic, language=language[1])
+                    with st.spinner("🔍 Buscando em múltiplas fontes (RSS, Google News)..."):
+                        from src.news_aggregator import NewsAggregator
+                        articles = NewsAggregator.fetch_from_all_sources(
+                            topic=search_topic, 
+                            max_articles=20,
+                            language=language[1]
+                        )
                         st.session_state['news_articles'] = articles
                         st.session_state['news_topic'] = search_topic
                 else:
