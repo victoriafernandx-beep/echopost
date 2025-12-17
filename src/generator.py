@@ -5,7 +5,15 @@ from src import database
 
 def configure_openai():
     try:
-        api_key = st.secrets["OPENAI_API_KEY"]
+        import os
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            try:
+                if "OPENAI_API_KEY" in st.secrets:
+                    api_key = st.secrets["OPENAI_API_KEY"]
+            except FileNotFoundError:
+                pass
+                
         if not api_key:
             return False
         return api_key

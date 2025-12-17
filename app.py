@@ -111,6 +111,7 @@ if not user:
 # Logout button in sidebar (bottom)
 with st.sidebar:
     st.markdown("---")
+    st.caption("v1.2 (Patched)")
     st.write(f"👤 {user.email}")
     
     # Check if we have a token cookie to clear
