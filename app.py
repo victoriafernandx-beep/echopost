@@ -1658,54 +1658,33 @@ elif page == "📡 News Radar":
     
     st.markdown("</div>", unsafe_allow_html=True)
         
-        # Display results
-        if 'news_articles' in st.session_state and st.session_state['news_articles']:
-            articles = st.session_state['news_articles']
-            st.markdown(f"### Destaques para '{st.session_state['news_topic']}'")
-            
-            # Display articles in a nicer grid
-            # Using CSS Grid via markdown for better control or just Columns iterating
-            
-            for article in articles:
-                # Article Card
-                with st.container():
-                    col_img, col_txt = st.columns([1, 3])
-                    
-                    with col_img:
-                        if article.get('urlToImage'):
-                            st.image(article['urlToImage'], use_container_width=True)
-                        else:
-                            st.markdown(f"""
-                            <div style="
-                                height: 120px;
-                                background: linear-gradient(135deg, {current_theme['soft_gray']} 0%, #e0e0e0 100%);
-                                border-radius: 12px;
-                                display: flex; align-items: center; justify-content: center;
-                                font-size: 2rem;
-                            ">📰</div>
-                            """, unsafe_allow_html=True)
-                            
-                    with col_txt:
+    # Display results
+    if 'news_articles' in st.session_state and st.session_state['news_articles']:
+        articles = st.session_state['news_articles']
+        st.markdown(f"### Destaques para '{st.session_state['news_topic']}'")
+        
+        # Display articles in a nicer grid
+        # Using CSS Grid via markdown for better control or just Columns iterating
+        
+        for article in articles:
+            # Article Card
+            with st.container():
+                col_img, col_txt = st.columns([1, 3])
+                
+                with col_img:
+                    if article.get('urlToImage'):
+                        st.image(article['urlToImage'], use_container_width=True)
+                    else:
                         st.markdown(f"""
-                        <h4 style="margin: 0; color: {current_theme['deep_black']};">{article['title']}</h4>
-                        <p style="font-size: 0.8rem; color: #6B7280; margin: 0.2rem 0;">
-                            {article['source']['name']} • {article.get('publishedAt', 'N/A')[:10]}
-                        </p>
-                        <p style="font-size: 0.9rem; color: {current_theme['graphite']}; line-height: 1.4;">
-                            {article.get('description', '')[:150]}...
-                        </p>
+                        <div style="
+                            height: 120px;
+                            background: linear-gradient(135deg, {current_theme['soft_gray']} 0%, #e0e0e0 100%);
+                            border-radius: 12px;
+                            display: flex; align-items: center; justify-content: center;
+                            font-size: 2rem;
+                        ">📰</div>
                         """, unsafe_allow_html=True)
                         
-                        btn_col1, btn_col2 = st.columns([1, 2])
-                        with btn_col1:
-                             st.link_button("Ler Mais", article['url'], use_container_width=True)
-                        with btn_col2:
-                            if st.button(f"✨ Criar Post sobre isso", key=f"btn_art_{article['url']}", use_container_width=True):
-                                # Logic to generate post
-                                news_context = news.format_news_for_prompt(article)
-                                with st.spinner("Gerando conteúdo..."):
-                                    from src import generator
-                                    prompt = f"Escreva um post para LinkedIn sobre: {news_context}"
                                     content = generator.generate_post(prompt, tone="Profissional")
                                     st.session_state['last_post'] = content
                                     st.session_state['last_topic'] = article['title']
