@@ -1664,8 +1664,6 @@ elif page == "📡 News Radar":
         st.markdown(f"### Destaques para '{st.session_state['news_topic']}'")
         
         # Display articles in a nicer grid
-        # Using CSS Grid via markdown for better control or just Columns iterating
-        
         for article in articles:
             # Article Card
             with st.container():
@@ -1676,25 +1674,32 @@ elif page == "📡 News Radar":
                         st.image(article['urlToImage'], use_container_width=True)
                     else:
                         st.markdown(f"""
-                        <div style="
+                        \u003cdiv style="
                             height: 120px;
                             background: linear-gradient(135deg, {current_theme['soft_gray']} 0%, #e0e0e0 100%);
                             border-radius: 12px;
                             display: flex; align-items: center; justify-content: center;
                             font-size: 2rem;
-                        ">📰</div>
+                        "\u003e📰\u003c/div\u003e
                         """, unsafe_allow_html=True)
                         
-                                    content = generator.generate_post(prompt, tone="Profissional")
-                                    st.session_state['last_post'] = content
-                                    st.session_state['last_topic'] = article['title']
-                                    st.session_state["navigation_selection"] = "✨ Gerador de Posts"
-                                    st.rerun()
-                                    
-                    st.markdown("---")
-        
-        elif 'news_articles' in st.session_state and not st.session_state['news_articles']:
-            st.info("🔍 Nenhuma notícia encontrada. Tente outro tópico.")
+                with col_txt:
+                    st.markdown(f"""
+                    \u003ch4 style="margin: 0; color: {current_theme['deep_black']};"\u003e{article['title']}\u003c/h4\u003e
+                    \u003cp style="font-size: 0.8rem; color: #6B7280; margin: 0.2rem 0;"\u003e
+                        {article['source']['name']} • {article.get('publishedAt', article.get('published_date', 'N/A'))[:10]}
+                    \u003c/p\u003e
+                    \u003cp style="font-size: 0.9rem; color: {current_theme['graphite']}; line-height: 1.4;"\u003e
+                        {article.get('description', '')[:150]}...
+                    \u003c/p\u003e
+                    """, unsafe_allow_html=True)
+                    
+                    st.link_button("📖 Ler Artigo", article['url'], use_container_width=True)
+                
+                st.markdown("---")
+    
+    elif 'news_articles' in st.session_state and not st.session_state['news_articles']:
+        st.info("🔍 Nenhuma notícia encontrada. Tente outro tópico.")
 
 elif page == "⚙️ Configurações":
     from src import linkedin
