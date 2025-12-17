@@ -111,7 +111,7 @@ if not user:
 # Logout button in sidebar (bottom)
 with st.sidebar:
     st.markdown("---")
-    st.caption("v1.4 (Final Fix)")
+    st.caption("v1.5 (Stable)")
     st.write(f"👤 {user.email}")
     
     # Check if we have a token cookie to clear
@@ -778,10 +778,14 @@ elif page == "📚 Biblioteca":
                         # Ensure post_tags is always a list
                         safe_post_tags = post_tags if post_tags is not None else []
                         
+                        # Filter default tags to only include those that exist in options
+                        # This prevents Streamlit error when tags like 'whatsapp' aren't in all_tags
+                        valid_default_tags = [tag for tag in safe_post_tags if tag in all_tags]
+                        
                         current_tags = st.multiselect(
                             "Tags do post",
                             options=all_tags + ["+ Nova tag"],
-                            default=safe_post_tags,
+                            default=valid_default_tags,
                             key=f"tags_{idx}"
                         )
                         
