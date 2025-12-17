@@ -9,3 +9,7 @@ font = "sans serif"
 headless = true
 enableCORS = false
 enableXsrfProtection = false
+
+[logger]
+level = "error"
+messageFormat = "%(asctime)s %(message)s"
