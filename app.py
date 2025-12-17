@@ -6,6 +6,11 @@ importlib.reload(database)
 import datetime
 from dotenv import load_dotenv
 import os
+import warnings
+
+# Suppress Streamlit's FileNotFoundError warning for missing secrets.toml
+warnings.filterwarnings("ignore", message=".*secrets.*", category=UserWarning)
+warnings.filterwarnings("ignore", message=".*secrets.*", category=Warning)
 
 # Load environment variables (Force reload)
 load_dotenv(override=True)
@@ -111,7 +116,7 @@ if not user:
 # Logout button in sidebar (bottom)
 with st.sidebar:
     st.markdown("---")
-    st.caption("v1.5 (Stable)")
+    st.caption("v1.6 (Clean)")
     st.write(f"👤 {user.email}")
     
     # Check if we have a token cookie to clear
