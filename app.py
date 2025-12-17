@@ -1610,39 +1610,6 @@ elif page == "📡 News Radar":
     </div>
     """, unsafe_allow_html=True)
     
-    # Check if API key is configured
-    api_key = news.get_news_api_key()
-    if not api_key:
-        st.warning("⚠️ **NewsAPI não configurada**")
-        st.info("Para usar o News Radar, adicione `NEWS_API_KEY` nos secrets do Streamlit Cloud.")
-        st.markdown("Obtenha sua chave gratuita em: [NewsAPI.org](https://newsapi.org)")
-    else:
-        # Search Container
-        st.markdown(f"""
-        <div style="
-            background: white;
-            padding: 1.5rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-            border: 1px solid {current_theme['border_gray']};
-            margin-bottom: 2rem;
-        ">
-        """, unsafe_allow_html=True)
-        
-        col_search, col_lang, col_btn = st.columns([3, 1, 1])
-        
-        with col_search:
-            search_topic = st.text_input(
-                "🔎 Tópico",
-                placeholder="Ex.: Inteligência Artificial, Startups...",
-                label_visibility="collapsed",
-                key="news_search"
-            )
-        
-        with col_lang:
-            language = st.selectbox(
-                "Idioma",
-                options=[("Português", "pt"), ("Inglês", "en"), ("Espanhol", "es")],
                 format_func=lambda x: x[0],
                 label_visibility="collapsed",
                 key="news_lang"
