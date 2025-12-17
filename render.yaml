@@ -1,6 +1,7 @@
 services:
   - type: web
     name: echopost-frontend
+    plan: free
     runtime: python
     region: oregon
     buildCommand: pip install -r requirements.txt
