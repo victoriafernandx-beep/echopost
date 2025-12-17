@@ -8,9 +8,29 @@ import os
 
 # supabase = create_client(url, key)
 # Removed cache_resource to ensure we can have unique authenticated clients per user/request
+
+def get_config(key):
+    """Safely get configuration from Env (Priority) or Secrets (Fallback)"""
+    # 1. Try OS Environment Variable (Fastest & Safest for Render)
+    value = os.getenv(key)
+    if value:
+        return value
+    
+    # 2. Try Streamlit Secrets (File-based)
+    # We wrap in try/except because accessing st.secrets raises FileNotFoundError if file is missing
+    try:
+        if key in st.secrets:
+            return st.secrets[key]
+    except FileNotFoundError:
+        pass # No secrets file found, ignore
+    except Exception:
+        pass
+        
+    return None
+
 def init_supabase():
-    url = st.secrets.get("SUPABASE_URL") if "SUPABASE_URL" in st.secrets else os.getenv("SUPABASE_URL")
-    key = st.secrets.get("SUPABASE_KEY") if "SUPABASE_KEY" in st.secrets else os.getenv("SUPABASE_KEY")
+    url = get_config("SUPABASE_URL")
+    key = get_config("SUPABASE_KEY")
     
     if not url or not key:
         return None
@@ -23,27 +43,22 @@ def get_supabase_client(use_service_role=False):
     Args:
         use_service_role: If True, attempts to use SUPABASE_SERVICE_KEY for admin access
     """
-    # 1. Try st.secrets (Local/Streamlit Cloud)
-    if "SUPABASE_URL" in st.secrets:
-        url = st.secrets["SUPABASE_URL"]
-        if use_service_role:
-            key = st.secrets.get("SUPABASE_SERVICE_KEY", st.secrets["SUPABASE_KEY"])
-        else:
-            key = st.secrets["SUPABASE_KEY"]
+    url = get_config("SUPABASE_URL")
     
-    # 2. Linux/Render Env Vars
+    if use_service_role:
+        key = get_config("SUPABASE_SERVICE_KEY")
+        if not key:
+             # Fallback to standard key if service key not found
+             key = get_config("SUPABASE_KEY")
     else:
-        url = os.getenv("SUPABASE_URL")
-        if use_service_role:
-            key = os.getenv("SUPABASE_SERVICE_KEY", os.getenv("SUPABASE_KEY"))
-        else:
-            key = os.getenv("SUPABASE_KEY")
+        key = get_config("SUPABASE_KEY")
             
     if not url or not key:
         print("❌ Supabase config not found in Secrets or Env")
         return None
 
-    return create_client(url, key)
+    # Create client
+    client = create_client(url, key)
 
     # Standard client (Anon)
     key = st.secrets["SUPABASE_KEY"]

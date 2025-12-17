@@ -10,9 +10,18 @@ from typing import List, Dict, Tuple
 
 def configure_openai():
     """Configure OpenAI client"""
-    try:
         import os
-        api_key = st.secrets.get("OPENAI_API_KEY") if "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
+        # 1. Try Env Var first (Safe)
+        api_key = os.getenv("OPENAI_API_KEY")
+        
+        # 2. Try Secrets (Fallback)
+        if not api_key:
+            try:
+                if "OPENAI_API_KEY" in st.secrets:
+                    api_key = st.secrets["OPENAI_API_KEY"]
+            except FileNotFoundError:
+                pass
+
         if not api_key:
             return None
         return openai.OpenAI(api_key=api_key)
