@@ -59,12 +59,8 @@ def get_supabase_client(use_service_role=False):
 
     # Create client
     client = create_client(url, key)
-
-    # Standard client (Anon)
-    key = st.secrets["SUPABASE_KEY"]
     
-    # Create client
-    client = create_client(url, key)
+    # Redundant block removed (it was overwriting key deeply with st.secrets unsafe call)
     
     # Set auth token on postgrest if available
     try:
