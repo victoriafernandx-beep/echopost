@@ -8,6 +8,8 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 import hashlib
 from urllib.parse import quote_plus
+import streamlit as st
+from concurrent.futures import ThreadPoolExecutor
 
 class NewsAggregator:
     """Aggregates news from multiple free sources"""
@@ -32,6 +34,7 @@ class NewsAggregator:
     }
     
     @staticmethod
+    @st.cache_data(ttl=3600, show_spinner=False)
     def fetch_from_all_sources(topic: str, max_articles: int = 20, language: str = 'pt') -> List[Dict]:
         """
         Fetch news from all available sources
@@ -111,7 +114,7 @@ class NewsAggregator:
     @staticmethod
     def fetch_rss_feeds(sources: List[Dict]) -> List[Dict]:
         """
-        Fetch articles from RSS feed sources
+        Fetch articles from RSS feed sources in parallel
         
         Args:
             sources: List of source dictionaries with 'name' and 'url'
@@ -119,12 +122,10 @@ class NewsAggregator:
         Returns:
             List of articles
         """
-        articles = []
-        
-        for source in sources:
+        def _fetch_single_source(source):
             try:
                 feed = feedparser.parse(source['url'])
-                
+                source_articles = []
                 for entry in feed.entries[:5]:  # Limit to 5 per source
                     article = {
                         'title': entry.get('title', 'Sem título'),
@@ -134,12 +135,19 @@ class NewsAggregator:
                         'published_date': entry.get('published', ''),
                         'content_hash': NewsAggregator._hash_content(entry.get('title', '') + entry.get('link', ''))
                     }
-                    articles.append(article)
-                    
+                    source_articles.append(article)
+                return source_articles
             except Exception as e:
                 print(f"Error fetching RSS from {source['name']}: {e}")
-                continue
-        
+                return []
+
+        articles = []
+        with ThreadPoolExecutor(max_workers=len(sources) or 1) as executor:
+            results = list(executor.map(_fetch_single_source, sources))
+            
+        for source_result in results:
+            articles.extend(source_result)
+            
         return articles
     
     @staticmethod

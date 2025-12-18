@@ -1,8 +1,6 @@
 import streamlit as st
 from src import database
 from src import generator
-import importlib
-importlib.reload(database)
 import datetime
 from dotenv import load_dotenv
 import os
@@ -15,19 +13,11 @@ warnings.filterwarnings("ignore", message=".*secrets.*", category=Warning)
 # Load environment variables (Force reload)
 load_dotenv(override=True)
 
-# Debug: Check if key exists
-if not os.getenv("OPENAI_API_KEY"):
-    st.sidebar.error("❌ API Key não encontrada no ambiente!")
-else:
-    st.sidebar.success("✅ API Key carregada com sucesso.")
-
 # ============================================
 # AUTHENTICATION
 # ============================================
 from src import auth
 import extra_streamlit_components as stx
-import importlib
-importlib.reload(auth)
 
 # Initialize Cookie Manager
 cookie_manager = stx.CookieManager()
@@ -116,7 +106,7 @@ if not user:
 # Logout button in sidebar (bottom)
 with st.sidebar:
     st.markdown("---")
-    st.caption("v1.6 (Clean)")
+    st.caption("v1.7 (Optimized)")
     st.write(f"👤 {user.email}")
     
     # Check if we have a token cookie to clear
